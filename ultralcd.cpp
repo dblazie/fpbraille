@@ -245,22 +245,26 @@ static void lcd_autostart_sd()
 
 void lcd_preheat_pla()
 {
+   #if EXTRUDERS > 0
     setTargetHotend0(plaPreheatHotendTemp);
     setTargetHotend1(plaPreheatHotendTemp);
     setTargetHotend2(plaPreheatHotendTemp);
     setTargetBed(plaPreheatHPBTemp);
     fanSpeed = plaPreheatFanSpeed;
     lcd_return_to_status();
+  #endif
 }
 
 void lcd_preheat_abs()
 {
+  #if EXTRUDERS > 0
     setTargetHotend0(absPreheatHotendTemp);
     setTargetHotend1(absPreheatHotendTemp);
     setTargetHotend2(absPreheatHotendTemp);
     setTargetBed(absPreheatHPBTemp);
     fanSpeed = absPreheatFanSpeed;
     lcd_return_to_status();
+  #endif
 }
 
 static void lcd_tune_menu()
@@ -268,7 +272,9 @@ static void lcd_tune_menu()
     START_MENU();
     MENU_ITEM(back, MSG_MAIN, lcd_main_menu);
     MENU_ITEM_EDIT(int3, MSG_SPEED, &feedmultiply, 10, 999);
+#if TEMP_SENSOR_0 != 0
     MENU_ITEM_EDIT(int3, MSG_NOZZLE, &target_temperature[0], 0, HEATER_0_MAXTEMP - 15);
+#endif    
 #if TEMP_SENSOR_1 != 0
     MENU_ITEM_EDIT(int3, MSG_NOZZLE1, &target_temperature[1], 0, HEATER_1_MAXTEMP - 15);
 #endif
@@ -459,13 +465,16 @@ static void lcd_control_menu()
 
 static void lcd_control_temperature_menu()
 {
-	// set up temp variables - undo the default scaling
+#if EXTRUDERS > 0
+  	// set up temp variables - undo the default scaling
 	raw_Ki = unscalePID_i(Ki);
 	raw_Kd = unscalePID_d(Kd);
 	
     START_MENU();
     MENU_ITEM(back, MSG_CONTROL, lcd_control_menu);
+#if TEMP_SENSOR_0 != 0    
     MENU_ITEM_EDIT(int3, MSG_NOZZLE, &target_temperature[0], 0, HEATER_0_MAXTEMP - 15);
+#endif    
 #if TEMP_SENSOR_1 != 0
     MENU_ITEM_EDIT(int3, MSG_NOZZLE1, &target_temperature[1], 0, HEATER_1_MAXTEMP - 15);
 #endif
@@ -494,6 +503,7 @@ static void lcd_control_temperature_menu()
     MENU_ITEM(submenu, MSG_PREHEAT_PLA_SETTINGS, lcd_control_temperature_preheat_pla_settings_menu);
     MENU_ITEM(submenu, MSG_PREHEAT_ABS_SETTINGS, lcd_control_temperature_preheat_abs_settings_menu);
     END_MENU();
+#endif //EXTRUDERS > 0
 }
 
 static void lcd_control_temperature_preheat_pla_settings_menu()
@@ -501,7 +511,7 @@ static void lcd_control_temperature_preheat_pla_settings_menu()
     START_MENU();
     MENU_ITEM(back, MSG_TEMPERATURE, lcd_control_temperature_menu);
     MENU_ITEM_EDIT(int3, MSG_FAN_SPEED, &plaPreheatFanSpeed, 0, 255);
-    MENU_ITEM_EDIT(int3, MSG_NOZZLE, &plaPreheatHotendTemp, 0, HEATER_0_MAXTEMP - 15);
+//    MENU_ITEM_EDIT(int3, MSG_NOZZLE, &plaPreheatHotendTemp, 0, HEATER_0_MAXTEMP - 15); {bjb}
 #if TEMP_SENSOR_BED != 0
     MENU_ITEM_EDIT(int3, MSG_BED, &plaPreheatHPBTemp, 0, BED_MAXTEMP - 15);
 #endif
@@ -516,7 +526,7 @@ static void lcd_control_temperature_preheat_abs_settings_menu()
     START_MENU();
     MENU_ITEM(back, MSG_TEMPERATURE, lcd_control_temperature_menu);
     MENU_ITEM_EDIT(int3, MSG_FAN_SPEED, &absPreheatFanSpeed, 0, 255);
-    MENU_ITEM_EDIT(int3, MSG_NOZZLE, &absPreheatHotendTemp, 0, HEATER_0_MAXTEMP - 15);
+ //   MENU_ITEM_EDIT(int3, MSG_NOZZLE, &absPreheatHotendTemp, 0, HEATER_0_MAXTEMP - 15);{bjb}
 #if TEMP_SENSOR_BED != 0
     MENU_ITEM_EDIT(int3, MSG_BED, &absPreheatHPBTemp, 0, BED_MAXTEMP - 15);
 #endif
@@ -1129,16 +1139,20 @@ char *ftostr52(const float &x)
 // grab the pid i value out of the temp variable; scale it; then update the PID driver
 void copy_and_scalePID_i()
 {
+#if EXTRUDERS > 0
   Ki = scalePID_i(raw_Ki);
   updatePID();
+#endif
 }	
 
 // Callback for after editing PID d value
 // grab the pid d value out of the temp variable; scale it; then update the PID driver
 void copy_and_scalePID_d()
 {
+#if EXTRUDERS > 0
   Kd = scalePID_d(raw_Kd);
   updatePID();
+#endif
 }	
 	
 #endif //ULTRA_LCD

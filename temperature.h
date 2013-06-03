@@ -33,8 +33,13 @@ void manage_heater(); //it is critical that this is called periodically.
 
 // low level conversion routines
 // do not use these routines and variables outside of temperature.cpp
+#if EXTRUDERS > 0
 extern int target_temperature[EXTRUDERS];  
 extern float current_temperature[EXTRUDERS];
+#else
+extern int target_temperature[1];  
+extern float current_temperature[1];
+#endif
 extern int target_temperature_bed;
 extern float current_temperature_bed;
 

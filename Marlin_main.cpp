@@ -136,6 +136,13 @@
 // M928 - Start SD logging (M928 filename.g) - ended by M29
 // M999 - Restart after being stopped by error
 
+// M codes for Braille display M650 to M699
+
+// M650 - set text spacing
+// M651 - Set Graphics spacing
+// M652 - Move x pause move back(test sequence)
+// M653 - Move y one Revolution
+
 //Stepper Movement Variables
 
 //===========================================================================
@@ -456,7 +463,7 @@ void get_command()
             SERIAL_ERROR_START;
             SERIAL_ERRORPGM(MSG_ERR_LINE_NO);
             SERIAL_ERRORLN(gcode_LastN);
-            //Serial.println(gcode_N);
+            //Serial.println(gcode_N); // for debug {bjb} comment out when done
             FlushSerialRequestResend();
             serial_count = 0;
             return;
@@ -1011,7 +1018,9 @@ void process_commands()
         }
       }
      break;
+     #ifndef BRL
     case 104: // M104
+  
       if(setTargetedHotend(104)){
         break;
       }
@@ -1154,7 +1163,7 @@ void process_commands()
         previous_millis_cmd = millis();
     #endif
         break;
-
+  #endif //BRL
     #if FAN_PIN > -1
       case 106: //M106 Fan On
         if (code_seen('S')){

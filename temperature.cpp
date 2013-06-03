@@ -37,12 +37,21 @@
 //===========================================================================
 //=============================public variables============================
 //===========================================================================
+#if EXTRUDERS > 0  // if no extruders
 int target_temperature[EXTRUDERS] = { 0 };
 int target_temperature_bed = 0;
 int current_temperature_raw[EXTRUDERS] = { 0 };
 float current_temperature[EXTRUDERS] = { 0 };
 int current_temperature_bed_raw = 0;
 float current_temperature_bed = 0;
+#else // defines arrays of 1 if no extruders present.
+int target_temperature[1] = { 0 };
+int target_temperature_bed = 0;
+int current_temperature_raw[1] = { 0 };
+float current_temperature[1] = { 0 };
+int current_temperature_bed_raw = 0;
+float current_temperature_bed = 0;
+#endif
 
 #ifdef PIDTEMP
   float Kp=DEFAULT_Kp;
@@ -113,26 +122,30 @@ static volatile bool temp_meas_ready = false;
 #endif
 
 // Init min and max temp with extreme values to prevent false errors during startup
+#if EXTRUDERS > 0
 static int minttemp_raw[EXTRUDERS] = ARRAY_BY_EXTRUDERS( HEATER_0_RAW_LO_TEMP , HEATER_1_RAW_LO_TEMP , HEATER_2_RAW_LO_TEMP );
 static int maxttemp_raw[EXTRUDERS] = ARRAY_BY_EXTRUDERS( HEATER_0_RAW_HI_TEMP , HEATER_1_RAW_HI_TEMP , HEATER_2_RAW_HI_TEMP );
 static int minttemp[EXTRUDERS] = ARRAY_BY_EXTRUDERS( 0, 0, 0 );
 static int maxttemp[EXTRUDERS] = ARRAY_BY_EXTRUDERS( 16383, 16383, 16383 );
 //static int bed_minttemp_raw = HEATER_BED_RAW_LO_TEMP; /* No bed mintemp error implemented?!? */
+#endif
 #ifdef BED_MAXTEMP
 static int bed_maxttemp_raw = HEATER_BED_RAW_HI_TEMP;
 #endif
+#if EXTRUDERS > 0
 static void *heater_ttbl_map[EXTRUDERS] = ARRAY_BY_EXTRUDERS( (void *)HEATER_0_TEMPTABLE, (void *)HEATER_1_TEMPTABLE, (void *)HEATER_2_TEMPTABLE );
 static uint8_t heater_ttbllen_map[EXTRUDERS] = ARRAY_BY_EXTRUDERS( HEATER_0_TEMPTABLE_LEN, HEATER_1_TEMPTABLE_LEN, HEATER_2_TEMPTABLE_LEN );
-
+#endif
 static float analog2temp(int raw, uint8_t e);
 static float analog2tempBed(int raw);
 static void updateTemperaturesFromRawValues();
 
+#if EXTRUDERS > 0
 #ifdef WATCH_TEMP_PERIOD
 int watch_start_temp[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0,0,0);
 unsigned long watchmillis[EXTRUDERS] = ARRAY_BY_EXTRUDERS(0,0,0);
 #endif //WATCH_TEMP_PERIOD
-
+#endif //extruders>0
 //===========================================================================
 //=============================   functions      ============================
 //===========================================================================
@@ -308,6 +321,7 @@ int getHeaterPower(int heater) {
 
 void manage_heater()
 {
+#if EXTRUDERS > 0
   float pid_input;
   float pid_output;
 
@@ -475,12 +489,14 @@ void manage_heater()
       }
     #endif
   #endif
+#endif
 }
 
 #define PGM_RD_W(x)   (short)pgm_read_word(&x)
 // Derived from RepRap FiveD extruder::getTemperature()
 // For hot end temperature measurement.
 static float analog2temp(int raw, uint8_t e) {
+  #if EXTRUDERS > 0
   if(e >= EXTRUDERS)
   {
       SERIAL_ERROR_START;
@@ -519,6 +535,9 @@ static float analog2temp(int raw, uint8_t e) {
     return celsius;
   }
   return ((raw * ((5.0 * 100.0) / 1024.0) / OVERSAMPLENR) * TEMP_SENSOR_AD595_GAIN) + TEMP_SENSOR_AD595_OFFSET;
+#else
+return 0;
+#endif // Extruders =0
 }
 
 // Derived from RepRap FiveD extruder::getTemperature()
@@ -555,6 +574,7 @@ static float analog2tempBed(int raw) {
     and this function is called from normal context as it is too slow to run in interrupts and will block the stepper routine otherwise */
 static void updateTemperaturesFromRawValues()
 {
+  #if EXTRUDERS > 0
     for(uint8_t e=0;e<EXTRUDERS;e++)
     {
         current_temperature[e] = analog2temp(current_temperature_raw[e], e);
@@ -567,10 +587,12 @@ static void updateTemperaturesFromRawValues()
     CRITICAL_SECTION_START;
     temp_meas_ready = false;
     CRITICAL_SECTION_END;
+  #endif
 }
 
 void tp_init()
 {
+#if EXTRUDERS > 0
   // Finish init of mult extruder arrays 
   for(int e = 0; e < EXTRUDERS; e++) {
     // populate with the first value 
@@ -597,6 +619,7 @@ void tp_init()
   #if (HEATER_BED_PIN > -1) 
     SET_OUTPUT(HEATER_BED_PIN);
   #endif  
+  #endif // extruders =0
   #if (FAN_PIN > -1) 
     SET_OUTPUT(FAN_PIN);
     #ifdef FAST_PWM_FAN
@@ -665,7 +688,7 @@ void tp_init()
   
   // Wait for temperature measurement to settle
   delay(250);
-
+#if EXTRUDERS > 0
 #ifdef HEATER_0_MINTEMP
   minttemp[0] = HEATER_0_MINTEMP;
   while(analog2temp(minttemp_raw[0], 0) < HEATER_0_MINTEMP) {
@@ -686,7 +709,7 @@ void tp_init()
 #endif
   }
 #endif //MAXTEMP
-
+#endif // EXTRUDERS >0
 #if (EXTRUDERS > 1) && defined(HEATER_1_MINTEMP)
   minttemp[1] = HEATER_1_MINTEMP;
   while(analog2temp(minttemp_raw[1], 1) > HEATER_1_MINTEMP) {
@@ -753,6 +776,7 @@ void tp_init()
 
 void setWatch() 
 {  
+#if EXTRUDERS > 0
 #ifdef WATCH_TEMP_PERIOD
   for (int e = 0; e < EXTRUDERS; e++)
   {
@@ -763,11 +787,13 @@ void setWatch()
     } 
   }
 #endif 
+#endif
 }
 
 
 void disable_heater()
 {
+ #if EXTRUDERS > 0
   for(int i=0;i<EXTRUDERS;i++)
     setTargetHotend(0,i);
   setTargetBed(0);
@@ -802,6 +828,7 @@ void disable_heater()
       WRITE(HEATER_BED_PIN,LOW);
     #endif
   #endif 
+ #endif
 }
 
 void max_temp_error(uint8_t e) {
@@ -1046,12 +1073,14 @@ ISR(TIMER0_COMPB_vect)
 //      SERIAL_ERRORLNPGM("Temp measurement error!");
 //      break;
   }
-    
+#if EXTRUDERS > 0    
   if(temp_count >= 16) // 8 ms * 16 = 128ms.
   {
     if (!temp_meas_ready) //Only update the raw values if they have been read. Else we could be updating them during reading.
     {
+
       current_temperature_raw[0] = raw_temp_0_value;
+
 #if EXTRUDERS > 1
       current_temperature_raw[1] = raw_temp_1_value;
 #endif
@@ -1127,6 +1156,7 @@ ISR(TIMER0_COMPB_vect)
     }
 #endif
   }  
+  #endif // extruders =0
 }
 
 #ifdef PIDTEMP

@@ -162,12 +162,18 @@ Possible status screens:
        |T000/000D     Z000.0|
        |F100%  SD100% T--:--|
        |Status line.........|
+       
+20x4   |01234567890123456789|
+       |Braille Display NBP |
+       |T000/000D     Z000.0|
+       |F100%  SD100% T--:--|
+       |Status line.........|
 */
 static void lcd_implementation_status_screen()
 {
     int tHotend=int(degHotend(0) + 0.5);
     int tTarget=int(degTargetHotend(0) + 0.5);
-
+#if EXTRUDERS < 0 //{bjb}
 #if LCD_WIDTH < 20
     lcd.setCursor(0, 0);
     lcd.print(itostr3(tHotend));
@@ -289,10 +295,27 @@ static void lcd_implementation_status_screen()
         lcd_printPGM(PSTR("--:--"));
     }
 #endif
-
+#endif
+//#endif // not BRL
+#ifdef BRL
+  lcd.setCursor(0, 0);
+    lcd_printPGM(PSTR("Braille Display NBP"));
+    
+ // line2 of display
+ #  ifdef SDSUPPORT
+    lcd.setCursor(0, 2);
+    lcd_printPGM(PSTR("SD"));
+    if (IS_SD_PRINTING)
+        lcd.print(itostr3(card.percentDone()));
+    else
+        lcd_printPGM(PSTR("---"));
+    lcd.print('%');
+#  endif//SDSUPPORT      
+        
     //Status message line on the last line
     lcd.setCursor(0, LCD_HEIGHT - 1);
     lcd.print(lcd_status_message);
+#endif
 }
 static void lcd_implementation_drawmenu_generic(uint8_t row, const char* pstr, char pre_char, char post_char)
 {
