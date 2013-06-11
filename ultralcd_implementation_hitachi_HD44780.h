@@ -5,7 +5,7 @@
 * Implementation of the LCD display routines for a hitachi HD44780 display. These are common LCD character displays.
 * When selecting the rusian language, a slightly different LCD implementation is used to handle UTF8 characters.
 **/
-
+#define LANGUAGE_CHOICE 1
 #if LANGUAGE_CHOICE == 6
 #include "LiquidCrystalRus.h"
 #define LCD_CLASS LiquidCrystalRus

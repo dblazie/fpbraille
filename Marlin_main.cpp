@@ -39,6 +39,7 @@
 #include "ConfigurationStore.h"
 #include "language.h"
 #include "pins_arduino.h"
+#include "braillexlate.h"
 
 #if DIGIPOTSS_PIN > -1
 #include <SPI.h>
@@ -332,6 +333,7 @@ void suicide()
 
 void setup()
 {
+  length=0;
   setup_killpin(); 
   setup_powerhold();
   MYSERIAL.begin(BAUDRATE);
@@ -400,7 +402,7 @@ void loop()
   #endif
   if(buflen)
   {
-    #ifdef SDSUPPORT
+     #ifdef SDSUPPORT
       if(card.saving)
       {
 	if(strstr_P(cmdbuffer[bufindr], PSTR("M29")) == NULL)
@@ -421,8 +423,10 @@ void loop()
 	  SERIAL_PROTOCOLLNPGM(MSG_FILE_SAVED);
 	}
       }
-      else
-      {
+      else      // not card saving 
+      {       
+//       SERIAL_PROTOCOLLNPGM("ABOUT TO PROCESS A COMMAND");
+
 	process_commands();
       }
     #else
@@ -550,8 +554,10 @@ void get_command()
     return;
   }
   while( !card.eof()  && buflen < BUFSIZE) {
+//       SERIAL_PROTOCOLLN("in get command getting char from card");
     int16_t n=card.get();
     serial_char = (char)n;
+//     printf("%c", (char)n);    // doesn't send to serial port
     if(serial_char == '\n' || 
        serial_char == '\r' || 
        (serial_char == ':' && comment_mode == false) || 
@@ -559,6 +565,7 @@ void get_command()
     {
       if(card.eof()){
         SERIAL_PROTOCOLLNPGM(MSG_FILE_PRINTED);
+        braille_in_process = 0;
         stoptime=millis();
         char time[30];
         unsigned long t=(stoptime-starttime)/1000;
@@ -679,7 +686,21 @@ void process_commands()
 {
   unsigned long codenum; //throw away variable
   char *starpos = NULL;
-
+  char buffer[80];
+ //       SERIAL_PROTOCOLLNPGM("inside process commands");
+    if (braille_in_process) 
+    {
+//        SERIAL_PROTOCOLLN("process in Braille");
+//        SERIAL_ECHO(cmdbuffer[bufindr]);PROTOCOLLN
+         strcpy((char *)ascii_txt, cmdbuffer[bufindr]);
+         convert_to_braille((unsigned char *)ascii_txt, (unsigned int)strlen(ascii_txt));
+         convert_to_dots((unsigned char *)ascii_txt, (unsigned int)strlen(ascii_txt));
+         SERIAL_PROTOCOLLN(braille_dots14);
+         SERIAL_PROTOCOLLN(braille_dots25);
+         SERIAL_PROTOCOLLN(braille_dots36);
+         SERIAL_PROTOCOLLN("");
+        return;
+    }
   if(code_seen('G'))
   {
     switch((int)code_value())
@@ -931,6 +952,7 @@ void process_commands()
     case 24: //M24 - Start SD print
       card.startFileprint();
       starttime=millis();
+      braille_in_process = 1;
       break;
     case 25: //M25 - Pause SD print
       card.pauseSDPrint();
@@ -1760,6 +1782,7 @@ void process_commands()
       #endif
     }
     break;
+
     case 999: // M999: Restart after being stopped
       Stopped = false;
       lcd_reset_alert_level();

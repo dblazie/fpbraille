@@ -486,6 +486,7 @@ void CardReader::closefile()
 
 void CardReader::getfilename(const uint8_t nr)
 {
+// SERIAL_ECHOLN("at getfilename");  //dbb debug
   curDir=&workDir;
   lsAction=LS_GetFilename;
   nrFiles=nr;
@@ -501,7 +502,7 @@ uint16_t CardReader::getnrfilenames()
   nrFiles=0;
   curDir->rewind();
   lsDive("",*curDir);
-  //SERIAL_ECHOLN(nrFiles);
+//  SERIAL_ECHOLN(nrFiles);  //dbb debug
   return nrFiles;
 }
 
