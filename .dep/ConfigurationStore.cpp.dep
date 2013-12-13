@@ -1,0 +1,47 @@
+ConfigurationStore.o: ConfigurationStore.cpp Marlin.h fastio.h \
+  Configuration.h Configuration_adv.h thermistortables.h pins.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Arduino.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/binary.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WCharacter.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/HardwareSerial.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/variants/mega/pins_arduino.h \
+  MarlinSerial.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h \
+  planner.h temperature.h ultralcd.h ConfigurationStore.h
+
+Marlin.h:
+
+fastio.h:
+
+Configuration.h:
+
+Configuration_adv.h:
+
+thermistortables.h:
+
+pins.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Arduino.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/binary.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WCharacter.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/HardwareSerial.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/variants/mega/pins_arduino.h:
+
+MarlinSerial.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h:
+
+planner.h:
+
+temperature.h:
+
+ultralcd.h:
+
+ConfigurationStore.h:

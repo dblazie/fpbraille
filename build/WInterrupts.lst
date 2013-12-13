@@ -1,0 +1,1059 @@
+   1               		.file	"WInterrupts.c"
+   2               	__SREG__ = 0x3f
+   3               	__SP_H__ = 0x3e
+   4               	__SP_L__ = 0x3d
+   5               	__CCP__  = 0x34
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.global __do_copy_data
+   9               		.global __do_clear_bss
+  12               		.text
+  13               	.Ltext0:
+ 108               		.section	.text.attachInterrupt,"ax",@progbits
+ 113               	.global	attachInterrupt
+ 115               	attachInterrupt:
+ 116               		.stabd	46,0,0
+   1:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** /* -*- mode: jde; c-basic-offset: 2; indent-tabs-mode: nil -*- */
+   2:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+   3:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** /*
+   4:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   Part of the Wiring project - http://wiring.uniandes.edu.co
+   5:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+   6:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   Copyright (c) 2004-05 Hernando Barragan
+   7:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+   8:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   This library is free software; you can redistribute it and/or
+   9:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   modify it under the terms of the GNU Lesser General Public
+  10:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   License as published by the Free Software Foundation; either
+  11:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   version 2.1 of the License, or (at your option) any later version.
+  12:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+  13:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   This library is distributed in the hope that it will be useful,
+  14:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  16:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   Lesser General Public License for more details.
+  17:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+  18:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   You should have received a copy of the GNU Lesser General
+  19:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   Public License along with this library; if not, write to the
+  20:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+  21:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   Boston, MA  02111-1307  USA
+  22:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   
+  23:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   Modified 24 November 2006 by David A. Mellis
+  24:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   Modified 1 August 2010 by Mark Sproul
+  25:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** */
+  26:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+  27:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #include <inttypes.h>
+  28:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #include <avr/io.h>
+  29:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #include <avr/interrupt.h>
+  30:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #include <avr/pgmspace.h>
+  31:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #include <stdio.h>
+  32:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+  33:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #include "wiring_private.h"
+  34:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+  35:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** static volatile voidFuncPtr intFunc[EXTERNAL_NUM_INTERRUPTS];
+  36:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** // volatile static voidFuncPtr twiIntFunc;
+  37:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+  38:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** void attachInterrupt(uint8_t interruptNum, void (*userFunc)(void), int mode) {
+ 118               	.LM0:
+ 119               	.LFBB1:
+ 120               	/* prologue: function */
+ 121               	/* frame size = 0 */
+  39:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   if(interruptNum < EXTERNAL_NUM_INTERRUPTS) {
+ 123               	.LM1:
+ 124 0000 8830      		cpi r24,lo8(8)
+ 125 0002 00F0      		brlo .+2
+ 126 0004 00C0      		rjmp .L12
+  40:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     intFunc[interruptNum] = userFunc;
+ 128               	.LM2:
+ 129 0006 E82F      		mov r30,r24
+ 130 0008 F0E0      		ldi r31,lo8(0)
+ 131 000a EE0F      		lsl r30
+ 132 000c FF1F      		rol r31
+ 133 000e E050      		subi r30,lo8(-(intFunc))
+ 134 0010 F040      		sbci r31,hi8(-(intFunc))
+ 135 0012 7183      		std Z+1,r23
+ 136 0014 6083      		st Z,r22
+  41:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     
+  42:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     // Configure the interrupt mode (trigger on low input, any change, rising
+  43:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     // edge, or falling edge).  The mode constants were chosen to correspond
+  44:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     // to the configuration bits in the hardware register, so we simply shift
+  45:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     // the mode into place.
+  46:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       
+  47:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     // Enable the interrupt.
+  48:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       
+  49:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     switch (interruptNum) {
+ 138               	.LM3:
+ 139 0016 E82F      		mov r30,r24
+ 140 0018 F0E0      		ldi r31,lo8(0)
+ 141 001a E830      		cpi r30,8
+ 142 001c F105      		cpc r31,__zero_reg__
+ 143 001e 00F0      		brlo .+2
+ 144 0020 00C0      		rjmp .L12
+ 145 0022 E050      		subi r30,lo8(-(gs(.L11)))
+ 146 0024 F040      		sbci r31,hi8(-(gs(.L11)))
+ 147 0026 0C94 0000 		jmp __tablejump2__
+ 148               		.data
+ 149               		.section .progmem.gcc_sw_table, "a", @progbits
+ 150               		.p2align 1
+ 151               	.L11:
+ 152               		.data
+ 153               		.section .progmem.gcc_sw_table, "a", @progbits
+ 154               		.p2align 1
+ 155 0000 0000      		.word gs(.L3)
+ 156 0002 0000      		.word gs(.L4)
+ 157 0004 0000      		.word gs(.L5)
+ 158 0006 0000      		.word gs(.L6)
+ 159 0008 0000      		.word gs(.L7)
+ 160 000a 0000      		.word gs(.L8)
+ 161 000c 0000      		.word gs(.L9)
+ 162 000e 0000      		.word gs(.L10)
+ 163               		.section	.text.attachInterrupt
+ 164               	.L5:
+  50:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #if defined(__AVR_ATmega32U4__)
+  51:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 	// I hate doing this, but the register assignment differs between the 1280/2560
+  52:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 	// and the 32U4.  Since avrlib defines registers PCMSK1 and PCMSK2 that aren't 
+  53:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 	// even present on the 32U4 this is the only way to distinguish between them.
+  54:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 0:
+  55:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 	EICRA = (EICRA & ~((1<<ISC00) | (1<<ISC01))) | (mode << ISC00);
+  56:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 	EIMSK |= (1<<INT0);
+  57:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 	break;
+  58:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 1:
+  59:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 	EICRA = (EICRA & ~((1<<ISC10) | (1<<ISC11))) | (mode << ISC10);
+  60:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 	EIMSK |= (1<<INT1);
+  61:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 	break;	
+  62:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 2:
+  63:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         EICRA = (EICRA & ~((1<<ISC20) | (1<<ISC21))) | (mode << ISC20);
+  64:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         EIMSK |= (1<<INT2);
+  65:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         break;
+  66:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 3:
+  67:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         EICRA = (EICRA & ~((1<<ISC30) | (1<<ISC31))) | (mode << ISC30);
+  68:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         EIMSK |= (1<<INT3);
+  69:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         break;
+  70:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 4:
+  71:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         EICRB = (EICRB & ~((1<<ISC60) | (1<<ISC61))) | (mode << ISC60);
+  72:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         EIMSK |= (1<<INT6);
+  73:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         break;
+  74:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #elif defined(EICRA) && defined(EICRB) && defined(EIMSK)
+  75:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 2:
+  76:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EICRA = (EICRA & ~((1 << ISC00) | (1 << ISC01))) | (mode << ISC00);
+ 166               	.LM4:
+ 167 002a 8091 6900 		lds r24,105
+ 168 002e 8C7F      		andi r24,lo8(-4)
+ 169 0030 842B      		or r24,r20
+ 170 0032 8093 6900 		sts 105,r24
+  77:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK |= (1 << INT0);
+ 172               	.LM5:
+ 173 0036 E89A      		sbi 61-32,0
+ 174 0038 0895      		ret
+ 175               	.L6:
+  78:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+  79:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 3:
+  80:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EICRA = (EICRA & ~((1 << ISC10) | (1 << ISC11))) | (mode << ISC10);
+ 177               	.LM6:
+ 178 003a 8091 6900 		lds r24,105
+ 179 003e 440F      		lsl r20
+ 180 0040 551F      		rol r21
+ 181 0042 440F      		lsl r20
+ 182 0044 551F      		rol r21
+ 183 0046 837F      		andi r24,lo8(-13)
+ 184 0048 842B      		or r24,r20
+ 185 004a 8093 6900 		sts 105,r24
+  81:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK |= (1 << INT1);
+ 187               	.LM7:
+ 188 004e E99A      		sbi 61-32,1
+ 189 0050 0895      		ret
+ 190               	.L7:
+  82:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+  83:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 4:
+  84:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EICRA = (EICRA & ~((1 << ISC20) | (1 << ISC21))) | (mode << ISC20);
+ 192               	.LM8:
+ 193 0052 8091 6900 		lds r24,105
+ 194 0056 74E0      		ldi r23,4
+ 195 0058 440F      	1:	lsl r20
+ 196 005a 551F      		rol r21
+ 197 005c 7A95      		dec r23
+ 198 005e 01F4      		brne 1b
+ 199 0060 8F7C      		andi r24,lo8(-49)
+ 200 0062 842B      		or r24,r20
+ 201 0064 8093 6900 		sts 105,r24
+  85:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK |= (1 << INT2);
+ 203               	.LM9:
+ 204 0068 EA9A      		sbi 61-32,2
+ 205 006a 0895      		ret
+ 206               	.L8:
+  86:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+  87:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 5:
+  88:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EICRA = (EICRA & ~((1 << ISC30) | (1 << ISC31))) | (mode << ISC30);
+ 208               	.LM10:
+ 209 006c 8091 6900 		lds r24,105
+ 210 0070 66E0      		ldi r22,6
+ 211 0072 440F      	1:	lsl r20
+ 212 0074 551F      		rol r21
+ 213 0076 6A95      		dec r22
+ 214 0078 01F4      		brne 1b
+ 215 007a 8F73      		andi r24,lo8(63)
+ 216 007c 842B      		or r24,r20
+ 217 007e 8093 6900 		sts 105,r24
+  89:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK |= (1 << INT3);
+ 219               	.LM11:
+ 220 0082 EB9A      		sbi 61-32,3
+ 221 0084 0895      		ret
+ 222               	.L3:
+  90:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+  91:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 0:
+  92:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EICRB = (EICRB & ~((1 << ISC40) | (1 << ISC41))) | (mode << ISC40);
+ 224               	.LM12:
+ 225 0086 8091 6A00 		lds r24,106
+ 226 008a 8C7F      		andi r24,lo8(-4)
+ 227 008c 842B      		or r24,r20
+ 228 008e 8093 6A00 		sts 106,r24
+  93:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK |= (1 << INT4);
+ 230               	.LM13:
+ 231 0092 EC9A      		sbi 61-32,4
+ 232 0094 0895      		ret
+ 233               	.L4:
+  94:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+  95:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 1:
+  96:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EICRB = (EICRB & ~((1 << ISC50) | (1 << ISC51))) | (mode << ISC50);
+ 235               	.LM14:
+ 236 0096 8091 6A00 		lds r24,106
+ 237 009a 440F      		lsl r20
+ 238 009c 551F      		rol r21
+ 239 009e 440F      		lsl r20
+ 240 00a0 551F      		rol r21
+ 241 00a2 837F      		andi r24,lo8(-13)
+ 242 00a4 842B      		or r24,r20
+ 243 00a6 8093 6A00 		sts 106,r24
+  97:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK |= (1 << INT5);
+ 245               	.LM15:
+ 246 00aa ED9A      		sbi 61-32,5
+ 247 00ac 0895      		ret
+ 248               	.L9:
+  98:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+  99:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 6:
+ 100:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EICRB = (EICRB & ~((1 << ISC60) | (1 << ISC61))) | (mode << ISC60);
+ 250               	.LM16:
+ 251 00ae 8091 6A00 		lds r24,106
+ 252 00b2 24E0      		ldi r18,4
+ 253 00b4 440F      	1:	lsl r20
+ 254 00b6 551F      		rol r21
+ 255 00b8 2A95      		dec r18
+ 256 00ba 01F4      		brne 1b
+ 257 00bc 8F7C      		andi r24,lo8(-49)
+ 258 00be 842B      		or r24,r20
+ 259 00c0 8093 6A00 		sts 106,r24
+ 101:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK |= (1 << INT6);
+ 261               	.LM17:
+ 262 00c4 EE9A      		sbi 61-32,6
+ 263 00c6 0895      		ret
+ 264               	.L10:
+ 102:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 103:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 7:
+ 104:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EICRB = (EICRB & ~((1 << ISC70) | (1 << ISC71))) | (mode << ISC70);
+ 266               	.LM18:
+ 267 00c8 8091 6A00 		lds r24,106
+ 268 00cc 96E0      		ldi r25,6
+ 269 00ce 440F      	1:	lsl r20
+ 270 00d0 551F      		rol r21
+ 271 00d2 9A95      		dec r25
+ 272 00d4 01F4      		brne 1b
+ 273 00d6 8F73      		andi r24,lo8(63)
+ 274 00d8 842B      		or r24,r20
+ 275 00da 8093 6A00 		sts 106,r24
+ 105:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK |= (1 << INT7);
+ 277               	.LM19:
+ 278 00de EF9A      		sbi 61-32,7
+ 279               	.L12:
+ 280 00e0 0895      		ret
+ 282               	.Lscope1:
+ 284               		.stabd	78,0,0
+ 285               		.section	.text.detachInterrupt,"ax",@progbits
+ 288               	.global	detachInterrupt
+ 290               	detachInterrupt:
+ 291               		.stabd	46,0,0
+ 106:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 107:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #else		
+ 108:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 0:
+ 109:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #if defined(EICRA) && defined(ISC00) && defined(EIMSK)
+ 110:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EICRA = (EICRA & ~((1 << ISC00) | (1 << ISC01))) | (mode << ISC00);
+ 111:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK |= (1 << INT0);
+ 112:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #elif defined(MCUCR) && defined(ISC00) && defined(GICR)
+ 113:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       MCUCR = (MCUCR & ~((1 << ISC00) | (1 << ISC01))) | (mode << ISC00);
+ 114:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       GICR |= (1 << INT0);
+ 115:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #elif defined(MCUCR) && defined(ISC00) && defined(GIMSK)
+ 116:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       MCUCR = (MCUCR & ~((1 << ISC00) | (1 << ISC01))) | (mode << ISC00);
+ 117:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       GIMSK |= (1 << INT0);
+ 118:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #else
+ 119:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       #error attachInterrupt not finished for this CPU (case 0)
+ 120:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #endif
+ 121:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 122:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 123:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 1:
+ 124:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #if defined(EICRA) && defined(ISC10) && defined(ISC11) && defined(EIMSK)
+ 125:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EICRA = (EICRA & ~((1 << ISC10) | (1 << ISC11))) | (mode << ISC10);
+ 126:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK |= (1 << INT1);
+ 127:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #elif defined(MCUCR) && defined(ISC10) && defined(ISC11) && defined(GICR)
+ 128:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       MCUCR = (MCUCR & ~((1 << ISC10) | (1 << ISC11))) | (mode << ISC10);
+ 129:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       GICR |= (1 << INT1);
+ 130:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #elif defined(MCUCR) && defined(ISC10) && defined(GIMSK) && defined(GIMSK)
+ 131:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       MCUCR = (MCUCR & ~((1 << ISC10) | (1 << ISC11))) | (mode << ISC10);
+ 132:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       GIMSK |= (1 << INT1);
+ 133:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #else
+ 134:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       #warning attachInterrupt may need some more work for this cpu (case 1)
+ 135:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #endif
+ 136:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 137:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     
+ 138:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 2:
+ 139:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #if defined(EICRA) && defined(ISC20) && defined(ISC21) && defined(EIMSK)
+ 140:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EICRA = (EICRA & ~((1 << ISC20) | (1 << ISC21))) | (mode << ISC20);
+ 141:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK |= (1 << INT2);
+ 142:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #elif defined(MCUCR) && defined(ISC20) && defined(ISC21) && defined(GICR)
+ 143:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       MCUCR = (MCUCR & ~((1 << ISC20) | (1 << ISC21))) | (mode << ISC20);
+ 144:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       GICR |= (1 << INT2);
+ 145:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #elif defined(MCUCR) && defined(ISC20) && defined(GIMSK) && defined(GIMSK)
+ 146:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       MCUCR = (MCUCR & ~((1 << ISC20) | (1 << ISC21))) | (mode << ISC20);
+ 147:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       GIMSK |= (1 << INT2);
+ 148:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #endif
+ 149:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 150:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #endif
+ 151:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     }
+ 152:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   }
+ 153:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 154:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 155:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** void detachInterrupt(uint8_t interruptNum) {
+ 293               	.LM20:
+ 294               	.LFBB2:
+ 295               	/* prologue: function */
+ 296               	/* frame size = 0 */
+ 156:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   if(interruptNum < EXTERNAL_NUM_INTERRUPTS) {
+ 298               	.LM21:
+ 299 0000 8830      		cpi r24,lo8(8)
+ 300 0002 00F4      		brsh .L25
+ 157:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     // Disable the interrupt.  (We can't assume that interruptNum is equal
+ 158:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     // to the number of the EIMSK bit to clear, as this isn't true on the 
+ 159:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     // ATmega8.  There, INT0 is 6 and INT1 is 7.)
+ 160:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     switch (interruptNum) {
+ 302               	.LM22:
+ 303 0004 E82F      		mov r30,r24
+ 304 0006 F0E0      		ldi r31,lo8(0)
+ 305 0008 E830      		cpi r30,8
+ 306 000a F105      		cpc r31,__zero_reg__
+ 307 000c 00F4      		brsh .L15
+ 308 000e E050      		subi r30,lo8(-(gs(.L24)))
+ 309 0010 F040      		sbci r31,hi8(-(gs(.L24)))
+ 310 0012 0C94 0000 		jmp __tablejump2__
+ 311               		.data
+ 312               		.section .progmem.gcc_sw_table, "a", @progbits
+ 313               		.p2align 1
+ 314               	.L24:
+ 315               		.data
+ 316               		.section .progmem.gcc_sw_table, "a", @progbits
+ 317               		.p2align 1
+ 318 0010 0000      		.word gs(.L16)
+ 319 0012 0000      		.word gs(.L17)
+ 320 0014 0000      		.word gs(.L18)
+ 321 0016 0000      		.word gs(.L19)
+ 322 0018 0000      		.word gs(.L20)
+ 323 001a 0000      		.word gs(.L21)
+ 324 001c 0000      		.word gs(.L22)
+ 325 001e 0000      		.word gs(.L23)
+ 326               		.section	.text.detachInterrupt
+ 327               	.L18:
+ 161:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #if defined(__AVR_ATmega32U4__)
+ 162:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 0:
+ 163:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         EIMSK &= ~(1<<INT0);
+ 164:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         break;
+ 165:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 1:
+ 166:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         EIMSK &= ~(1<<INT1);
+ 167:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         break;
+ 168:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 2:
+ 169:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         EIMSK &= ~(1<<INT2);
+ 170:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         break;
+ 171:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 3:
+ 172:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         EIMSK &= ~(1<<INT3);
+ 173:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         break;	
+ 174:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 4:
+ 175:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         EIMSK &= ~(1<<INT6);
+ 176:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****         break;	
+ 177:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #elif defined(EICRA) && defined(EICRB) && defined(EIMSK)
+ 178:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 2:
+ 179:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK &= ~(1 << INT0);
+ 329               	.LM23:
+ 330 0016 E898      		cbi 61-32,0
+ 331 0018 00C0      		rjmp .L15
+ 332               	.L19:
+ 180:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 181:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 3:
+ 182:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK &= ~(1 << INT1);
+ 334               	.LM24:
+ 335 001a E998      		cbi 61-32,1
+ 336 001c 00C0      		rjmp .L15
+ 337               	.L20:
+ 183:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 184:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 4:
+ 185:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK &= ~(1 << INT2);
+ 339               	.LM25:
+ 340 001e EA98      		cbi 61-32,2
+ 341 0020 00C0      		rjmp .L15
+ 342               	.L21:
+ 186:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 187:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 5:
+ 188:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK &= ~(1 << INT3);
+ 344               	.LM26:
+ 345 0022 EB98      		cbi 61-32,3
+ 346 0024 00C0      		rjmp .L15
+ 347               	.L16:
+ 189:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 190:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 0:
+ 191:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK &= ~(1 << INT4);
+ 349               	.LM27:
+ 350 0026 EC98      		cbi 61-32,4
+ 351 0028 00C0      		rjmp .L15
+ 352               	.L17:
+ 192:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 193:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 1:
+ 194:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK &= ~(1 << INT5);
+ 354               	.LM28:
+ 355 002a ED98      		cbi 61-32,5
+ 356 002c 00C0      		rjmp .L15
+ 357               	.L22:
+ 195:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 196:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 6:
+ 197:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK &= ~(1 << INT6);
+ 359               	.LM29:
+ 360 002e EE98      		cbi 61-32,6
+ 361 0030 00C0      		rjmp .L15
+ 362               	.L23:
+ 198:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 199:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 7:
+ 200:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK &= ~(1 << INT7);
+ 364               	.LM30:
+ 365 0032 EF98      		cbi 61-32,7
+ 366               	.L15:
+ 201:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 202:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #else
+ 203:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 0:
+ 204:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #if defined(EIMSK) && defined(INT0)
+ 205:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK &= ~(1 << INT0);
+ 206:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #elif defined(GICR) && defined(ISC00)
+ 207:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       GICR &= ~(1 << INT0); // atmega32
+ 208:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #elif defined(GIMSK) && defined(INT0)
+ 209:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       GIMSK &= ~(1 << INT0);
+ 210:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #else
+ 211:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       #error detachInterrupt not finished for this cpu
+ 212:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #endif
+ 213:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 214:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 215:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     case 1:
+ 216:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #if defined(EIMSK) && defined(INT1)
+ 217:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       EIMSK &= ~(1 << INT1);
+ 218:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #elif defined(GICR) && defined(INT1)
+ 219:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       GICR &= ~(1 << INT1); // atmega32
+ 220:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #elif defined(GIMSK) && defined(INT1)
+ 221:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       GIMSK &= ~(1 << INT1);
+ 222:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #else
+ 223:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       #warning detachInterrupt may need some more work for this cpu (case 1)
+ 224:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     #endif
+ 225:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       break;
+ 226:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #endif
+ 227:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     }
+ 228:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****       
+ 229:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     intFunc[interruptNum] = 0;
+ 368               	.LM31:
+ 369 0034 E82F      		mov r30,r24
+ 370 0036 F0E0      		ldi r31,lo8(0)
+ 371 0038 EE0F      		lsl r30
+ 372 003a FF1F      		rol r31
+ 373 003c E050      		subi r30,lo8(-(intFunc))
+ 374 003e F040      		sbci r31,hi8(-(intFunc))
+ 375 0040 1182      		std Z+1,__zero_reg__
+ 376 0042 1082      		st Z,__zero_reg__
+ 377               	.L25:
+ 378 0044 0895      		ret
+ 380               	.Lscope2:
+ 382               		.stabd	78,0,0
+ 383               		.section	.text.__vector_1,"ax",@progbits
+ 385               	.global	__vector_1
+ 387               	__vector_1:
+ 388               		.stabd	46,0,0
+ 230:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   }
+ 231:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 232:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 233:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** /*
+ 234:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** void attachInterruptTwi(void (*userFunc)(void) ) {
+ 235:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   twiIntFunc = userFunc;
+ 236:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 237:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** */
+ 238:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 239:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #if defined(__AVR_ATmega32U4__)
+ 240:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT0_vect) {
+ 241:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 	if(intFunc[EXTERNAL_INT_0])
+ 242:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 		intFunc[EXTERNAL_INT_0]();
+ 243:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 244:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 245:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT1_vect) {
+ 246:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 	if(intFunc[EXTERNAL_INT_1])
+ 247:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 		intFunc[EXTERNAL_INT_1]();
+ 248:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 249:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 250:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT2_vect) {
+ 251:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     if(intFunc[EXTERNAL_INT_2])
+ 252:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 		intFunc[EXTERNAL_INT_2]();
+ 253:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 254:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 255:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT3_vect) {
+ 256:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     if(intFunc[EXTERNAL_INT_3])
+ 257:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 		intFunc[EXTERNAL_INT_3]();
+ 258:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 259:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 260:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT6_vect) {
+ 261:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     if(intFunc[EXTERNAL_INT_4])
+ 262:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 		intFunc[EXTERNAL_INT_4]();
+ 263:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 264:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 265:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** #elif defined(EICRA) && defined(EICRB)
+ 266:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 267:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT0_vect) {
+ 390               	.LM32:
+ 391               	.LFBB3:
+ 392 0000 1F92      		push __zero_reg__
+ 393 0002 0F92      		push r0
+ 394 0004 0FB6      		in r0,__SREG__
+ 395 0006 0F92      		push r0
+ 396 0008 0BB6      		in r0,91-32
+ 397 000a 0F92      		push r0
+ 398 000c 1124      		clr __zero_reg__
+ 399 000e 2F93      		push r18
+ 400 0010 3F93      		push r19
+ 401 0012 4F93      		push r20
+ 402 0014 5F93      		push r21
+ 403 0016 6F93      		push r22
+ 404 0018 7F93      		push r23
+ 405 001a 8F93      		push r24
+ 406 001c 9F93      		push r25
+ 407 001e AF93      		push r26
+ 408 0020 BF93      		push r27
+ 409 0022 EF93      		push r30
+ 410 0024 FF93      		push r31
+ 411               	/* prologue: Signal */
+ 412               	/* frame size = 0 */
+ 268:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   if(intFunc[EXTERNAL_INT_2])
+ 414               	.LM33:
+ 415 0026 8091 0000 		lds r24,intFunc+4
+ 416 002a 9091 0000 		lds r25,(intFunc+4)+1
+ 417 002e 892B      		or r24,r25
+ 418 0030 01F0      		breq .L28
+ 269:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     intFunc[EXTERNAL_INT_2]();
+ 420               	.LM34:
+ 421 0032 E091 0000 		lds r30,intFunc+4
+ 422 0036 F091 0000 		lds r31,(intFunc+4)+1
+ 423 003a 1995      		eicall
+ 424               	.L28:
+ 425               	/* epilogue start */
+ 270:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 427               	.LM35:
+ 428 003c FF91      		pop r31
+ 429 003e EF91      		pop r30
+ 430 0040 BF91      		pop r27
+ 431 0042 AF91      		pop r26
+ 432 0044 9F91      		pop r25
+ 433 0046 8F91      		pop r24
+ 434 0048 7F91      		pop r23
+ 435 004a 6F91      		pop r22
+ 436 004c 5F91      		pop r21
+ 437 004e 4F91      		pop r20
+ 438 0050 3F91      		pop r19
+ 439 0052 2F91      		pop r18
+ 440 0054 0F90      		pop r0
+ 441 0056 0BBE      		out 91-32,r0
+ 442 0058 0F90      		pop r0
+ 443 005a 0FBE      		out __SREG__,r0
+ 444 005c 0F90      		pop r0
+ 445 005e 1F90      		pop __zero_reg__
+ 446 0060 1895      		reti
+ 448               	.Lscope3:
+ 450               		.stabd	78,0,0
+ 451               		.section	.text.__vector_2,"ax",@progbits
+ 453               	.global	__vector_2
+ 455               	__vector_2:
+ 456               		.stabd	46,0,0
+ 271:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 272:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT1_vect) {
+ 458               	.LM36:
+ 459               	.LFBB4:
+ 460 0000 1F92      		push __zero_reg__
+ 461 0002 0F92      		push r0
+ 462 0004 0FB6      		in r0,__SREG__
+ 463 0006 0F92      		push r0
+ 464 0008 0BB6      		in r0,91-32
+ 465 000a 0F92      		push r0
+ 466 000c 1124      		clr __zero_reg__
+ 467 000e 2F93      		push r18
+ 468 0010 3F93      		push r19
+ 469 0012 4F93      		push r20
+ 470 0014 5F93      		push r21
+ 471 0016 6F93      		push r22
+ 472 0018 7F93      		push r23
+ 473 001a 8F93      		push r24
+ 474 001c 9F93      		push r25
+ 475 001e AF93      		push r26
+ 476 0020 BF93      		push r27
+ 477 0022 EF93      		push r30
+ 478 0024 FF93      		push r31
+ 479               	/* prologue: Signal */
+ 480               	/* frame size = 0 */
+ 273:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   if(intFunc[EXTERNAL_INT_3])
+ 482               	.LM37:
+ 483 0026 8091 0000 		lds r24,intFunc+6
+ 484 002a 9091 0000 		lds r25,(intFunc+6)+1
+ 485 002e 892B      		or r24,r25
+ 486 0030 01F0      		breq .L31
+ 274:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     intFunc[EXTERNAL_INT_3]();
+ 488               	.LM38:
+ 489 0032 E091 0000 		lds r30,intFunc+6
+ 490 0036 F091 0000 		lds r31,(intFunc+6)+1
+ 491 003a 1995      		eicall
+ 492               	.L31:
+ 493               	/* epilogue start */
+ 275:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 495               	.LM39:
+ 496 003c FF91      		pop r31
+ 497 003e EF91      		pop r30
+ 498 0040 BF91      		pop r27
+ 499 0042 AF91      		pop r26
+ 500 0044 9F91      		pop r25
+ 501 0046 8F91      		pop r24
+ 502 0048 7F91      		pop r23
+ 503 004a 6F91      		pop r22
+ 504 004c 5F91      		pop r21
+ 505 004e 4F91      		pop r20
+ 506 0050 3F91      		pop r19
+ 507 0052 2F91      		pop r18
+ 508 0054 0F90      		pop r0
+ 509 0056 0BBE      		out 91-32,r0
+ 510 0058 0F90      		pop r0
+ 511 005a 0FBE      		out __SREG__,r0
+ 512 005c 0F90      		pop r0
+ 513 005e 1F90      		pop __zero_reg__
+ 514 0060 1895      		reti
+ 516               	.Lscope4:
+ 518               		.stabd	78,0,0
+ 519               		.section	.text.__vector_3,"ax",@progbits
+ 521               	.global	__vector_3
+ 523               	__vector_3:
+ 524               		.stabd	46,0,0
+ 276:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 277:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT2_vect) {
+ 526               	.LM40:
+ 527               	.LFBB5:
+ 528 0000 1F92      		push __zero_reg__
+ 529 0002 0F92      		push r0
+ 530 0004 0FB6      		in r0,__SREG__
+ 531 0006 0F92      		push r0
+ 532 0008 0BB6      		in r0,91-32
+ 533 000a 0F92      		push r0
+ 534 000c 1124      		clr __zero_reg__
+ 535 000e 2F93      		push r18
+ 536 0010 3F93      		push r19
+ 537 0012 4F93      		push r20
+ 538 0014 5F93      		push r21
+ 539 0016 6F93      		push r22
+ 540 0018 7F93      		push r23
+ 541 001a 8F93      		push r24
+ 542 001c 9F93      		push r25
+ 543 001e AF93      		push r26
+ 544 0020 BF93      		push r27
+ 545 0022 EF93      		push r30
+ 546 0024 FF93      		push r31
+ 547               	/* prologue: Signal */
+ 548               	/* frame size = 0 */
+ 278:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   if(intFunc[EXTERNAL_INT_4])
+ 550               	.LM41:
+ 551 0026 8091 0000 		lds r24,intFunc+8
+ 552 002a 9091 0000 		lds r25,(intFunc+8)+1
+ 553 002e 892B      		or r24,r25
+ 554 0030 01F0      		breq .L34
+ 279:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     intFunc[EXTERNAL_INT_4]();
+ 556               	.LM42:
+ 557 0032 E091 0000 		lds r30,intFunc+8
+ 558 0036 F091 0000 		lds r31,(intFunc+8)+1
+ 559 003a 1995      		eicall
+ 560               	.L34:
+ 561               	/* epilogue start */
+ 280:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 563               	.LM43:
+ 564 003c FF91      		pop r31
+ 565 003e EF91      		pop r30
+ 566 0040 BF91      		pop r27
+ 567 0042 AF91      		pop r26
+ 568 0044 9F91      		pop r25
+ 569 0046 8F91      		pop r24
+ 570 0048 7F91      		pop r23
+ 571 004a 6F91      		pop r22
+ 572 004c 5F91      		pop r21
+ 573 004e 4F91      		pop r20
+ 574 0050 3F91      		pop r19
+ 575 0052 2F91      		pop r18
+ 576 0054 0F90      		pop r0
+ 577 0056 0BBE      		out 91-32,r0
+ 578 0058 0F90      		pop r0
+ 579 005a 0FBE      		out __SREG__,r0
+ 580 005c 0F90      		pop r0
+ 581 005e 1F90      		pop __zero_reg__
+ 582 0060 1895      		reti
+ 584               	.Lscope5:
+ 586               		.stabd	78,0,0
+ 587               		.section	.text.__vector_4,"ax",@progbits
+ 589               	.global	__vector_4
+ 591               	__vector_4:
+ 592               		.stabd	46,0,0
+ 281:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 282:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT3_vect) {
+ 594               	.LM44:
+ 595               	.LFBB6:
+ 596 0000 1F92      		push __zero_reg__
+ 597 0002 0F92      		push r0
+ 598 0004 0FB6      		in r0,__SREG__
+ 599 0006 0F92      		push r0
+ 600 0008 0BB6      		in r0,91-32
+ 601 000a 0F92      		push r0
+ 602 000c 1124      		clr __zero_reg__
+ 603 000e 2F93      		push r18
+ 604 0010 3F93      		push r19
+ 605 0012 4F93      		push r20
+ 606 0014 5F93      		push r21
+ 607 0016 6F93      		push r22
+ 608 0018 7F93      		push r23
+ 609 001a 8F93      		push r24
+ 610 001c 9F93      		push r25
+ 611 001e AF93      		push r26
+ 612 0020 BF93      		push r27
+ 613 0022 EF93      		push r30
+ 614 0024 FF93      		push r31
+ 615               	/* prologue: Signal */
+ 616               	/* frame size = 0 */
+ 283:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   if(intFunc[EXTERNAL_INT_5])
+ 618               	.LM45:
+ 619 0026 8091 0000 		lds r24,intFunc+10
+ 620 002a 9091 0000 		lds r25,(intFunc+10)+1
+ 621 002e 892B      		or r24,r25
+ 622 0030 01F0      		breq .L37
+ 284:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     intFunc[EXTERNAL_INT_5]();
+ 624               	.LM46:
+ 625 0032 E091 0000 		lds r30,intFunc+10
+ 626 0036 F091 0000 		lds r31,(intFunc+10)+1
+ 627 003a 1995      		eicall
+ 628               	.L37:
+ 629               	/* epilogue start */
+ 285:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 631               	.LM47:
+ 632 003c FF91      		pop r31
+ 633 003e EF91      		pop r30
+ 634 0040 BF91      		pop r27
+ 635 0042 AF91      		pop r26
+ 636 0044 9F91      		pop r25
+ 637 0046 8F91      		pop r24
+ 638 0048 7F91      		pop r23
+ 639 004a 6F91      		pop r22
+ 640 004c 5F91      		pop r21
+ 641 004e 4F91      		pop r20
+ 642 0050 3F91      		pop r19
+ 643 0052 2F91      		pop r18
+ 644 0054 0F90      		pop r0
+ 645 0056 0BBE      		out 91-32,r0
+ 646 0058 0F90      		pop r0
+ 647 005a 0FBE      		out __SREG__,r0
+ 648 005c 0F90      		pop r0
+ 649 005e 1F90      		pop __zero_reg__
+ 650 0060 1895      		reti
+ 652               	.Lscope6:
+ 654               		.stabd	78,0,0
+ 655               		.section	.text.__vector_5,"ax",@progbits
+ 657               	.global	__vector_5
+ 659               	__vector_5:
+ 660               		.stabd	46,0,0
+ 286:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 287:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT4_vect) {
+ 662               	.LM48:
+ 663               	.LFBB7:
+ 664 0000 1F92      		push __zero_reg__
+ 665 0002 0F92      		push r0
+ 666 0004 0FB6      		in r0,__SREG__
+ 667 0006 0F92      		push r0
+ 668 0008 0BB6      		in r0,91-32
+ 669 000a 0F92      		push r0
+ 670 000c 1124      		clr __zero_reg__
+ 671 000e 2F93      		push r18
+ 672 0010 3F93      		push r19
+ 673 0012 4F93      		push r20
+ 674 0014 5F93      		push r21
+ 675 0016 6F93      		push r22
+ 676 0018 7F93      		push r23
+ 677 001a 8F93      		push r24
+ 678 001c 9F93      		push r25
+ 679 001e AF93      		push r26
+ 680 0020 BF93      		push r27
+ 681 0022 EF93      		push r30
+ 682 0024 FF93      		push r31
+ 683               	/* prologue: Signal */
+ 684               	/* frame size = 0 */
+ 288:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   if(intFunc[EXTERNAL_INT_0])
+ 686               	.LM49:
+ 687 0026 8091 0000 		lds r24,intFunc
+ 688 002a 9091 0000 		lds r25,(intFunc)+1
+ 689 002e 892B      		or r24,r25
+ 690 0030 01F0      		breq .L40
+ 289:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     intFunc[EXTERNAL_INT_0]();
+ 692               	.LM50:
+ 693 0032 E091 0000 		lds r30,intFunc
+ 694 0036 F091 0000 		lds r31,(intFunc)+1
+ 695 003a 1995      		eicall
+ 696               	.L40:
+ 697               	/* epilogue start */
+ 290:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 699               	.LM51:
+ 700 003c FF91      		pop r31
+ 701 003e EF91      		pop r30
+ 702 0040 BF91      		pop r27
+ 703 0042 AF91      		pop r26
+ 704 0044 9F91      		pop r25
+ 705 0046 8F91      		pop r24
+ 706 0048 7F91      		pop r23
+ 707 004a 6F91      		pop r22
+ 708 004c 5F91      		pop r21
+ 709 004e 4F91      		pop r20
+ 710 0050 3F91      		pop r19
+ 711 0052 2F91      		pop r18
+ 712 0054 0F90      		pop r0
+ 713 0056 0BBE      		out 91-32,r0
+ 714 0058 0F90      		pop r0
+ 715 005a 0FBE      		out __SREG__,r0
+ 716 005c 0F90      		pop r0
+ 717 005e 1F90      		pop __zero_reg__
+ 718 0060 1895      		reti
+ 720               	.Lscope7:
+ 722               		.stabd	78,0,0
+ 723               		.section	.text.__vector_6,"ax",@progbits
+ 725               	.global	__vector_6
+ 727               	__vector_6:
+ 728               		.stabd	46,0,0
+ 291:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 292:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT5_vect) {
+ 730               	.LM52:
+ 731               	.LFBB8:
+ 732 0000 1F92      		push __zero_reg__
+ 733 0002 0F92      		push r0
+ 734 0004 0FB6      		in r0,__SREG__
+ 735 0006 0F92      		push r0
+ 736 0008 0BB6      		in r0,91-32
+ 737 000a 0F92      		push r0
+ 738 000c 1124      		clr __zero_reg__
+ 739 000e 2F93      		push r18
+ 740 0010 3F93      		push r19
+ 741 0012 4F93      		push r20
+ 742 0014 5F93      		push r21
+ 743 0016 6F93      		push r22
+ 744 0018 7F93      		push r23
+ 745 001a 8F93      		push r24
+ 746 001c 9F93      		push r25
+ 747 001e AF93      		push r26
+ 748 0020 BF93      		push r27
+ 749 0022 EF93      		push r30
+ 750 0024 FF93      		push r31
+ 751               	/* prologue: Signal */
+ 752               	/* frame size = 0 */
+ 293:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   if(intFunc[EXTERNAL_INT_1])
+ 754               	.LM53:
+ 755 0026 8091 0000 		lds r24,intFunc+2
+ 756 002a 9091 0000 		lds r25,(intFunc+2)+1
+ 757 002e 892B      		or r24,r25
+ 758 0030 01F0      		breq .L43
+ 294:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     intFunc[EXTERNAL_INT_1]();
+ 760               	.LM54:
+ 761 0032 E091 0000 		lds r30,intFunc+2
+ 762 0036 F091 0000 		lds r31,(intFunc+2)+1
+ 763 003a 1995      		eicall
+ 764               	.L43:
+ 765               	/* epilogue start */
+ 295:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 767               	.LM55:
+ 768 003c FF91      		pop r31
+ 769 003e EF91      		pop r30
+ 770 0040 BF91      		pop r27
+ 771 0042 AF91      		pop r26
+ 772 0044 9F91      		pop r25
+ 773 0046 8F91      		pop r24
+ 774 0048 7F91      		pop r23
+ 775 004a 6F91      		pop r22
+ 776 004c 5F91      		pop r21
+ 777 004e 4F91      		pop r20
+ 778 0050 3F91      		pop r19
+ 779 0052 2F91      		pop r18
+ 780 0054 0F90      		pop r0
+ 781 0056 0BBE      		out 91-32,r0
+ 782 0058 0F90      		pop r0
+ 783 005a 0FBE      		out __SREG__,r0
+ 784 005c 0F90      		pop r0
+ 785 005e 1F90      		pop __zero_reg__
+ 786 0060 1895      		reti
+ 788               	.Lscope8:
+ 790               		.stabd	78,0,0
+ 791               		.section	.text.__vector_7,"ax",@progbits
+ 793               	.global	__vector_7
+ 795               	__vector_7:
+ 796               		.stabd	46,0,0
+ 296:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 297:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT6_vect) {
+ 798               	.LM56:
+ 799               	.LFBB9:
+ 800 0000 1F92      		push __zero_reg__
+ 801 0002 0F92      		push r0
+ 802 0004 0FB6      		in r0,__SREG__
+ 803 0006 0F92      		push r0
+ 804 0008 0BB6      		in r0,91-32
+ 805 000a 0F92      		push r0
+ 806 000c 1124      		clr __zero_reg__
+ 807 000e 2F93      		push r18
+ 808 0010 3F93      		push r19
+ 809 0012 4F93      		push r20
+ 810 0014 5F93      		push r21
+ 811 0016 6F93      		push r22
+ 812 0018 7F93      		push r23
+ 813 001a 8F93      		push r24
+ 814 001c 9F93      		push r25
+ 815 001e AF93      		push r26
+ 816 0020 BF93      		push r27
+ 817 0022 EF93      		push r30
+ 818 0024 FF93      		push r31
+ 819               	/* prologue: Signal */
+ 820               	/* frame size = 0 */
+ 298:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   if(intFunc[EXTERNAL_INT_6])
+ 822               	.LM57:
+ 823 0026 8091 0000 		lds r24,intFunc+12
+ 824 002a 9091 0000 		lds r25,(intFunc+12)+1
+ 825 002e 892B      		or r24,r25
+ 826 0030 01F0      		breq .L46
+ 299:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     intFunc[EXTERNAL_INT_6]();
+ 828               	.LM58:
+ 829 0032 E091 0000 		lds r30,intFunc+12
+ 830 0036 F091 0000 		lds r31,(intFunc+12)+1
+ 831 003a 1995      		eicall
+ 832               	.L46:
+ 833               	/* epilogue start */
+ 300:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 835               	.LM59:
+ 836 003c FF91      		pop r31
+ 837 003e EF91      		pop r30
+ 838 0040 BF91      		pop r27
+ 839 0042 AF91      		pop r26
+ 840 0044 9F91      		pop r25
+ 841 0046 8F91      		pop r24
+ 842 0048 7F91      		pop r23
+ 843 004a 6F91      		pop r22
+ 844 004c 5F91      		pop r21
+ 845 004e 4F91      		pop r20
+ 846 0050 3F91      		pop r19
+ 847 0052 2F91      		pop r18
+ 848 0054 0F90      		pop r0
+ 849 0056 0BBE      		out 91-32,r0
+ 850 0058 0F90      		pop r0
+ 851 005a 0FBE      		out __SREG__,r0
+ 852 005c 0F90      		pop r0
+ 853 005e 1F90      		pop __zero_reg__
+ 854 0060 1895      		reti
+ 856               	.Lscope9:
+ 858               		.stabd	78,0,0
+ 859               		.section	.text.__vector_8,"ax",@progbits
+ 861               	.global	__vector_8
+ 863               	__vector_8:
+ 864               		.stabd	46,0,0
+ 301:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** 
+ 302:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** ISR(INT7_vect) {
+ 866               	.LM60:
+ 867               	.LFBB10:
+ 868 0000 1F92      		push __zero_reg__
+ 869 0002 0F92      		push r0
+ 870 0004 0FB6      		in r0,__SREG__
+ 871 0006 0F92      		push r0
+ 872 0008 0BB6      		in r0,91-32
+ 873 000a 0F92      		push r0
+ 874 000c 1124      		clr __zero_reg__
+ 875 000e 2F93      		push r18
+ 876 0010 3F93      		push r19
+ 877 0012 4F93      		push r20
+ 878 0014 5F93      		push r21
+ 879 0016 6F93      		push r22
+ 880 0018 7F93      		push r23
+ 881 001a 8F93      		push r24
+ 882 001c 9F93      		push r25
+ 883 001e AF93      		push r26
+ 884 0020 BF93      		push r27
+ 885 0022 EF93      		push r30
+ 886 0024 FF93      		push r31
+ 887               	/* prologue: Signal */
+ 888               	/* frame size = 0 */
+ 303:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****   if(intFunc[EXTERNAL_INT_7])
+ 890               	.LM61:
+ 891 0026 8091 0000 		lds r24,intFunc+14
+ 892 002a 9091 0000 		lds r25,(intFunc+14)+1
+ 893 002e 892B      		or r24,r25
+ 894 0030 01F0      		breq .L49
+ 304:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c ****     intFunc[EXTERNAL_INT_7]();
+ 896               	.LM62:
+ 897 0032 E091 0000 		lds r30,intFunc+14
+ 898 0036 F091 0000 		lds r31,(intFunc+14)+1
+ 899 003a 1995      		eicall
+ 900               	.L49:
+ 901               	/* epilogue start */
+ 305:../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c **** }
+ 903               	.LM63:
+ 904 003c FF91      		pop r31
+ 905 003e EF91      		pop r30
+ 906 0040 BF91      		pop r27
+ 907 0042 AF91      		pop r26
+ 908 0044 9F91      		pop r25
+ 909 0046 8F91      		pop r24
+ 910 0048 7F91      		pop r23
+ 911 004a 6F91      		pop r22
+ 912 004c 5F91      		pop r21
+ 913 004e 4F91      		pop r20
+ 914 0050 3F91      		pop r19
+ 915 0052 2F91      		pop r18
+ 916 0054 0F90      		pop r0
+ 917 0056 0BBE      		out 91-32,r0
+ 918 0058 0F90      		pop r0
+ 919 005a 0FBE      		out __SREG__,r0
+ 920 005c 0F90      		pop r0
+ 921 005e 1F90      		pop __zero_reg__
+ 922 0060 1895      		reti
+ 924               	.Lscope10:
+ 926               		.stabd	78,0,0
+ 927               		.section	.bss.intFunc,"aw",@nobits
+ 930               	intFunc:
+ 931 0000 0000 0000 		.skip 16,0
+ 931      0000 0000 
+ 931      0000 0000 
+ 931      0000 0000 
+ 956               		.text
+ 958               	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 WInterrupts.c
+     /tmp/cct6FrMY.s:2      *ABS*:0000003f __SREG__
+     /tmp/cct6FrMY.s:3      *ABS*:0000003e __SP_H__
+     /tmp/cct6FrMY.s:4      *ABS*:0000003d __SP_L__
+     /tmp/cct6FrMY.s:5      *ABS*:00000034 __CCP__
+     /tmp/cct6FrMY.s:6      *ABS*:00000000 __tmp_reg__
+     /tmp/cct6FrMY.s:7      *ABS*:00000001 __zero_reg__
+     /tmp/cct6FrMY.s:115    .text.attachInterrupt:00000000 attachInterrupt
+     /tmp/cct6FrMY.s:930    .bss.intFunc:00000000 intFunc
+     /tmp/cct6FrMY.s:290    .text.detachInterrupt:00000000 detachInterrupt
+     /tmp/cct6FrMY.s:387    .text.__vector_1:00000000 __vector_1
+     /tmp/cct6FrMY.s:455    .text.__vector_2:00000000 __vector_2
+     /tmp/cct6FrMY.s:523    .text.__vector_3:00000000 __vector_3
+     /tmp/cct6FrMY.s:591    .text.__vector_4:00000000 __vector_4
+     /tmp/cct6FrMY.s:659    .text.__vector_5:00000000 __vector_5
+     /tmp/cct6FrMY.s:727    .text.__vector_6:00000000 __vector_6
+     /tmp/cct6FrMY.s:795    .text.__vector_7:00000000 __vector_7
+     /tmp/cct6FrMY.s:863    .text.__vector_8:00000000 __vector_8
+
+UNDEFINED SYMBOLS
+__do_copy_data
+__do_clear_bss
+__tablejump2__

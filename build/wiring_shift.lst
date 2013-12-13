@@ -1,0 +1,239 @@
+   1               		.file	"wiring_shift.c"
+   2               	__SREG__ = 0x3f
+   3               	__SP_H__ = 0x3e
+   4               	__SP_L__ = 0x3d
+   5               	__CCP__  = 0x34
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.global __do_copy_data
+   9               		.global __do_clear_bss
+  12               		.text
+  13               	.Ltext0:
+ 110               		.section	.text.shiftOut,"ax",@progbits
+ 116               	.global	shiftOut
+ 118               	shiftOut:
+ 119               		.stabd	46,0,0
+   1:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** /*
+   2:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   wiring_shift.c - shiftOut() function
+   3:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   Part of Arduino - http://www.arduino.cc/
+   4:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 
+   5:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   Copyright (c) 2005-2006 David A. Mellis
+   6:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 
+   7:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   This library is free software; you can redistribute it and/or
+   8:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   modify it under the terms of the GNU Lesser General Public
+   9:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   License as published by the Free Software Foundation; either
+  10:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   version 2.1 of the License, or (at your option) any later version.
+  11:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 
+  12:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   This library is distributed in the hope that it will be useful,
+  13:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   but WITHOUT ANY WARRANTY; without even the implied warranty of
+  14:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  15:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   Lesser General Public License for more details.
+  16:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 
+  17:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   You should have received a copy of the GNU Lesser General
+  18:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   Public License along with this library; if not, write to the
+  19:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+  20:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   Boston, MA  02111-1307  USA
+  21:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 
+  22:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c ****   $Id: wiring.c 248 2007-02-03 15:36:30Z mellis $
+  23:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** */
+  24:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 
+  25:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** #include "wiring_private.h"
+  26:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 
+  27:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** uint8_t shiftIn(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder) {
+  28:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 	uint8_t value = 0;
+  29:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 	uint8_t i;
+  30:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 
+  31:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 	for (i = 0; i < 8; ++i) {
+  32:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 		digitalWrite(clockPin, HIGH);
+  33:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 		if (bitOrder == LSBFIRST)
+  34:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 			value |= digitalRead(dataPin) << i;
+  35:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 		else
+  36:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 			value |= digitalRead(dataPin) << (7 - i);
+  37:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 		digitalWrite(clockPin, LOW);
+  38:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 	}
+  39:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 	return value;
+  40:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** }
+  41:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 
+  42:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** void shiftOut(uint8_t dataPin, uint8_t clockPin, uint8_t bitOrder, uint8_t val)
+  43:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** {
+ 121               	.LM0:
+ 122               	.LFBB1:
+ 123 0000 A0E0      		ldi r26,lo8(0)
+ 124 0002 B0E0      		ldi r27,hi8(0)
+ 125 0004 E0E0      		ldi r30,pm_lo8(1f)
+ 126 0006 F0E0      		ldi r31,pm_hi8(1f)
+ 127 0008 0C94 0000 		jmp __prologue_saves__+((18 - 9) * 2)
+ 128               	1:
+ 129               	/* prologue: function */
+ 130               	/* frame size = 0 */
+ 131 000c E82E      		mov r14,r24
+ 132 000e F62E      		mov r15,r22
+ 133 0010 B42E      		mov r11,r20
+ 135               	.LM1:
+ 136 0012 C7E0      		ldi r28,lo8(7)
+ 137 0014 D0E0      		ldi r29,hi8(7)
+ 138 0016 022F      		mov r16,r18
+ 139 0018 10E0      		ldi r17,lo8(0)
+  44:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 	uint8_t i;
+  45:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 
+  46:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 	for (i = 0; i < 8; i++)  {
+  47:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 		if (bitOrder == LSBFIRST)
+  48:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 			digitalWrite(dataPin, !!(val & (1 << i)));
+ 141               	.LM2:
+ 142 001a 87E0      		ldi r24,lo8(7)
+ 143 001c C82E      		mov r12,r24
+ 144 001e D12C      		mov r13,__zero_reg__
+ 145               	.L4:
+ 147               	.LM3:
+ 148 0020 BB20      		tst r11
+ 149 0022 01F4      		brne .L2
+ 151               	.LM4:
+ 152 0024 B601      		movw r22,r12
+ 153 0026 6C1B      		sub r22,r28
+ 154 0028 7D0B      		sbc r23,r29
+ 155 002a C801      		movw r24,r16
+ 156 002c 00C0      		rjmp 2f
+ 157 002e 9595      	1:	asr r25
+ 158 0030 8795      		ror r24
+ 159 0032 6A95      	2:	dec r22
+ 160 0034 02F4      		brpl 1b
+ 161 0036 BC01      		movw r22,r24
+ 162 0038 00C0      		rjmp .L7
+ 163               	.L2:
+  49:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 		else	
+  50:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 			digitalWrite(dataPin, !!(val & (1 << (7 - i))));
+ 165               	.LM5:
+ 166 003a B801      		movw r22,r16
+ 167 003c 0C2E      		mov r0,r28
+ 168 003e 00C0      		rjmp 2f
+ 169 0040 7595      	1:	asr r23
+ 170 0042 6795      		ror r22
+ 171 0044 0A94      	2:	dec r0
+ 172 0046 02F4      		brpl 1b
+ 173               	.L7:
+ 174 0048 6170      		andi r22,lo8(1)
+ 175 004a 8E2D      		mov r24,r14
+ 176 004c 0E94 0000 		call digitalWrite
+  51:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 			
+  52:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 		digitalWrite(clockPin, HIGH);
+ 178               	.LM6:
+ 179 0050 8F2D      		mov r24,r15
+ 180 0052 61E0      		ldi r22,lo8(1)
+ 181 0054 0E94 0000 		call digitalWrite
+  53:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 		digitalWrite(clockPin, LOW);		
+ 183               	.LM7:
+ 184 0058 8F2D      		mov r24,r15
+ 185 005a 60E0      		ldi r22,lo8(0)
+ 186 005c 0E94 0000 		call digitalWrite
+ 187 0060 2197      		sbiw r28,1
+ 189               	.LM8:
+ 190 0062 9FEF      		ldi r25,hi8(-1)
+ 191 0064 CF3F      		cpi r28,lo8(-1)
+ 192 0066 D907      		cpc r29,r25
+ 193 0068 01F4      		brne .L4
+ 194               	/* epilogue start */
+  54:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** 	}
+  55:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_shift.c **** }
+ 196               	.LM9:
+ 197 006a CDB7      		in r28,__SP_L__
+ 198 006c DEB7      		in r29,__SP_H__
+ 199 006e E9E0      		ldi r30, lo8(9)
+ 200 0070 0C94 0000 		jmp __epilogue_restores__ + ((18 - 9) * 2)
+ 202               	.Lscope1:
+ 204               		.stabd	78,0,0
+ 205               		.section	.text.shiftIn,"ax",@progbits
+ 210               	.global	shiftIn
+ 212               	shiftIn:
+ 213               		.stabd	46,0,0
+ 215               	.LM10:
+ 216               	.LFBB2:
+ 217 0000 A0E0      		ldi r26,lo8(0)
+ 218 0002 B0E0      		ldi r27,hi8(0)
+ 219 0004 E0E0      		ldi r30,pm_lo8(1f)
+ 220 0006 F0E0      		ldi r31,pm_hi8(1f)
+ 221 0008 0C94 0000 		jmp __prologue_saves__+((18 - 8) * 2)
+ 222               	1:
+ 223               	/* prologue: function */
+ 224               	/* frame size = 0 */
+ 225 000c F82E      		mov r15,r24
+ 226 000e 062F      		mov r16,r22
+ 227 0010 E42E      		mov r14,r20
+ 229               	.LM11:
+ 230 0012 10E0      		ldi r17,lo8(0)
+ 231 0014 C7E0      		ldi r28,lo8(7)
+ 232 0016 D0E0      		ldi r29,hi8(7)
+ 234               	.LM12:
+ 235 0018 97E0      		ldi r25,lo8(7)
+ 236 001a C92E      		mov r12,r25
+ 237 001c D12C      		mov r13,__zero_reg__
+ 238               	.L11:
+ 240               	.LM13:
+ 241 001e 802F      		mov r24,r16
+ 242 0020 61E0      		ldi r22,lo8(1)
+ 243 0022 0E94 0000 		call digitalWrite
+ 245               	.LM14:
+ 246 0026 EE20      		tst r14
+ 247 0028 01F4      		brne .L9
+ 249               	.LM15:
+ 250 002a 8F2D      		mov r24,r15
+ 251 002c 0E94 0000 		call digitalRead
+ 252 0030 9601      		movw r18,r12
+ 253 0032 2C1B      		sub r18,r28
+ 254 0034 3D0B      		sbc r19,r29
+ 255 0036 00C0      		rjmp 2f
+ 256 0038 880F      	1:	lsl r24
+ 257 003a 991F      		rol r25
+ 258 003c 2A95      	2:	dec r18
+ 259 003e 02F4      		brpl 1b
+ 260 0040 00C0      		rjmp .L14
+ 261               	.L9:
+ 263               	.LM16:
+ 264 0042 8F2D      		mov r24,r15
+ 265 0044 0E94 0000 		call digitalRead
+ 266 0048 0C2E      		mov r0,r28
+ 267 004a 00C0      		rjmp 2f
+ 268 004c 880F      	1:	lsl r24
+ 269 004e 991F      		rol r25
+ 270 0050 0A94      	2:	dec r0
+ 271 0052 02F4      		brpl 1b
+ 272               	.L14:
+ 273 0054 182B      		or r17,r24
+ 275               	.LM17:
+ 276 0056 802F      		mov r24,r16
+ 277 0058 60E0      		ldi r22,lo8(0)
+ 278 005a 0E94 0000 		call digitalWrite
+ 279 005e 2197      		sbiw r28,1
+ 281               	.LM18:
+ 282 0060 8FEF      		ldi r24,hi8(-1)
+ 283 0062 CF3F      		cpi r28,lo8(-1)
+ 284 0064 D807      		cpc r29,r24
+ 285 0066 01F4      		brne .L11
+ 287               	.LM19:
+ 288 0068 812F      		mov r24,r17
+ 289               	/* epilogue start */
+ 290 006a CDB7      		in r28,__SP_L__
+ 291 006c DEB7      		in r29,__SP_H__
+ 292 006e E8E0      		ldi r30, lo8(8)
+ 293 0070 0C94 0000 		jmp __epilogue_restores__ + ((18 - 8) * 2)
+ 298               	.Lscope2:
+ 300               		.stabd	78,0,0
+ 324               		.text
+ 326               	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 wiring_shift.c
+     /tmp/ccqB1Pcd.s:2      *ABS*:0000003f __SREG__
+     /tmp/ccqB1Pcd.s:3      *ABS*:0000003e __SP_H__
+     /tmp/ccqB1Pcd.s:4      *ABS*:0000003d __SP_L__
+     /tmp/ccqB1Pcd.s:5      *ABS*:00000034 __CCP__
+     /tmp/ccqB1Pcd.s:6      *ABS*:00000000 __tmp_reg__
+     /tmp/ccqB1Pcd.s:7      *ABS*:00000001 __zero_reg__
+     /tmp/ccqB1Pcd.s:118    .text.shiftOut:00000000 shiftOut
+     /tmp/ccqB1Pcd.s:212    .text.shiftIn:00000000 shiftIn
+
+UNDEFINED SYMBOLS
+__do_copy_data
+__do_clear_bss
+__prologue_saves__
+digitalWrite
+__epilogue_restores__
+digitalRead

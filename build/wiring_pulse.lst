@@ -1,0 +1,313 @@
+   1               		.file	"wiring_pulse.c"
+   2               	__SREG__ = 0x3f
+   3               	__SP_H__ = 0x3e
+   4               	__SP_L__ = 0x3d
+   5               	__CCP__  = 0x34
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.global __do_copy_data
+   9               		.global __do_clear_bss
+  12               		.text
+  13               	.Ltext0:
+ 110               		.section	.text.pulseIn,"ax",@progbits
+ 115               	.global	pulseIn
+ 117               	pulseIn:
+ 118               		.stabd	46,0,0
+   1:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** /*
+   2:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   wiring_pulse.c - pulseIn() function
+   3:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   Part of Arduino - http://www.arduino.cc/
+   4:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 
+   5:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   Copyright (c) 2005-2006 David A. Mellis
+   6:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 
+   7:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   This library is free software; you can redistribute it and/or
+   8:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   modify it under the terms of the GNU Lesser General Public
+   9:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   License as published by the Free Software Foundation; either
+  10:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   version 2.1 of the License, or (at your option) any later version.
+  11:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 
+  12:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   This library is distributed in the hope that it will be useful,
+  13:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   but WITHOUT ANY WARRANTY; without even the implied warranty of
+  14:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  15:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   Lesser General Public License for more details.
+  16:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 
+  17:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   You should have received a copy of the GNU Lesser General
+  18:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   Public License along with this library; if not, write to the
+  19:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+  20:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   Boston, MA  02111-1307  USA
+  21:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 
+  22:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****   $Id: wiring.c 248 2007-02-03 15:36:30Z mellis $
+  23:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** */
+  24:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 
+  25:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** #include "wiring_private.h"
+  26:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** #include "pins_arduino.h"
+  27:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 
+  28:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** /* Measures the length (in microseconds) of a pulse on the pin; state is HIGH
+  29:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****  * or LOW, the type of pulse to measure.  Works on pulses from 2-3 microseconds
+  30:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****  * to 3 minutes in length, but must be called at least a few dozen microseconds
+  31:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c ****  * before the start of the pulse. */
+  32:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** unsigned long pulseIn(uint8_t pin, uint8_t state, unsigned long timeout)
+  33:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** {
+ 120               	.LM0:
+ 121               	.LFBB1:
+ 122 0000 A0E0      		ldi r26,lo8(0)
+ 123 0002 B0E0      		ldi r27,hi8(0)
+ 124 0004 E0E0      		ldi r30,pm_lo8(1f)
+ 125 0006 F0E0      		ldi r31,pm_hi8(1f)
+ 126 0008 0C94 0000 		jmp __prologue_saves__+((18 - 12) * 2)
+ 127               	1:
+ 128               	/* prologue: function */
+ 129               	/* frame size = 0 */
+ 130               	.LBB2:
+  34:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// cache the port and bit of the pin in order to speed up the
+  35:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// pulse width measuring loop and achieve finer resolution.  calling
+  36:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// digitalRead() instead yields much coarser resolution.
+  37:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	uint8_t bit = digitalPinToBitMask(pin);
+ 132               	.LM1:
+ 133 000c A82F      		mov r26,r24
+ 134 000e B0E0      		ldi r27,lo8(0)
+ 135 0010 CD01      		movw r24,r26
+ 136 0012 8050      		subi r24,lo8(-(digital_pin_to_bit_mask_PGM))
+ 137 0014 9040      		sbci r25,hi8(-(digital_pin_to_bit_mask_PGM))
+ 138 0016 FC01      		movw r30,r24
+ 139               	/* #APP */
+ 140               	 ;  37 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c" 1
+ 141 0018 8490      		lpm r8, Z
+ 142               		
+ 143               	 ;  0 "" 2
+ 144               	/* #NOAPP */
+ 145               	.LBE2:
+ 146               	.LBB3:
+  38:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	uint8_t port = digitalPinToPort(pin);
+ 148               	.LM2:
+ 149 001a A050      		subi r26,lo8(-(digital_pin_to_port_PGM))
+ 150 001c B040      		sbci r27,hi8(-(digital_pin_to_port_PGM))
+ 151 001e FD01      		movw r30,r26
+ 152               	/* #APP */
+ 153               	 ;  38 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c" 1
+ 154 0020 8491      		lpm r24, Z
+ 155               		
+ 156               	 ;  0 "" 2
+ 157               	/* #NOAPP */
+ 158               	.LBE3:
+  39:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	uint8_t stateMask = (state ? bit : 0);
+ 160               	.LM3:
+ 161 0022 6623      		tst r22
+ 162 0024 01F4      		brne .L2
+ 163 0026 9924      		clr r9
+ 164 0028 00C0      		rjmp .L3
+ 165               	.L2:
+ 166 002a 982C      		mov r9,r8
+ 167               	.L3:
+  40:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	unsigned long width = 0; // keep initialization out of time critical area
+  41:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	
+  42:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// convert the timeout from microseconds to a number of times through
+  43:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// the initial loop; it takes 16 clock cycles per iteration.
+  44:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	unsigned long numloops = 0;
+  45:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	unsigned long maxloops = microsecondsToClockCycles(timeout) / 16;
+ 169               	.LM4:
+ 170 002c 6FEF      		ldi r22,lo8(268435455)
+ 171 002e A62E      		mov r10,r22
+ 172 0030 6FEF      		ldi r22,hi8(268435455)
+ 173 0032 B62E      		mov r11,r22
+ 174 0034 6FEF      		ldi r22,hlo8(268435455)
+ 175 0036 C62E      		mov r12,r22
+ 176 0038 6FE0      		ldi r22,hhi8(268435455)
+ 177 003a D62E      		mov r13,r22
+ 178 003c A222      		and r10,r18
+ 179 003e B322      		and r11,r19
+ 180 0040 C422      		and r12,r20
+ 181 0042 D522      		and r13,r21
+ 182               	.LBB4:
+  46:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	
+  47:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// wait for any previous pulse to end
+  48:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	while ((*portInputRegister(port) & bit) == stateMask)
+ 184               	.LM5:
+ 185 0044 682F      		mov r22,r24
+ 186 0046 70E0      		ldi r23,lo8(0)
+ 187 0048 660F      		lsl r22
+ 188 004a 771F      		rol r23
+ 189 004c 6050      		subi r22,lo8(-(port_to_input_PGM))
+ 190 004e 7040      		sbci r23,hi8(-(port_to_input_PGM))
+ 191 0050 EE24      		clr r14
+ 192 0052 FF24      		clr r15
+ 193 0054 8701      		movw r16,r14
+ 194 0056 FB01      		movw r30,r22
+ 195               	/* #APP */
+ 196               	 ;  48 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c" 1
+ 197 0058 A591      		lpm r26, Z+
+ 198 005a B491      		lpm r27, Z
+ 199               		
+ 200               	 ;  0 "" 2
+ 201               	/* #NOAPP */
+ 202 005c 00C0      		rjmp .L4
+ 203               	.L6:
+ 204               	.LBE4:
+  49:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 		if (numloops++ == maxloops)
+ 206               	.LM6:
+ 207 005e EA14      		cp r14,r10
+ 208 0060 FB04      		cpc r15,r11
+ 209 0062 0C05      		cpc r16,r12
+ 210 0064 1D05      		cpc r17,r13
+ 211 0066 01F4      		brne .+2
+ 212 0068 00C0      		rjmp .L5
+ 213 006a 0894      		sec
+ 214 006c E11C      		adc r14,__zero_reg__
+ 215 006e F11C      		adc r15,__zero_reg__
+ 216 0070 011D      		adc r16,__zero_reg__
+ 217 0072 111D      		adc r17,__zero_reg__
+ 218               	.L4:
+ 220               	.LM7:
+ 221 0074 8C91      		ld r24,X
+ 222 0076 8821      		and r24,r8
+ 223 0078 8915      		cp r24,r9
+ 224 007a 01F0      		breq .L6
+ 225 007c 00C0      		rjmp .L15
+ 226               	.L8:
+  50:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 			return 0;
+  51:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	
+  52:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// wait for the pulse to start
+  53:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	while ((*portInputRegister(port) & bit) != stateMask)
+  54:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 		if (numloops++ == maxloops)
+ 228               	.LM8:
+ 229 007e EA14      		cp r14,r10
+ 230 0080 FB04      		cpc r15,r11
+ 231 0082 0C05      		cpc r16,r12
+ 232 0084 1D05      		cpc r17,r13
+ 233 0086 01F4      		brne .+2
+ 234 0088 00C0      		rjmp .L5
+ 235 008a 0894      		sec
+ 236 008c E11C      		adc r14,__zero_reg__
+ 237 008e F11C      		adc r15,__zero_reg__
+ 238 0090 011D      		adc r16,__zero_reg__
+ 239 0092 111D      		adc r17,__zero_reg__
+ 240 0094 00C0      		rjmp .L14
+ 241               	.L15:
+ 242               	.LBB5:
+ 244               	.LM9:
+ 245 0096 FB01      		movw r30,r22
+ 246               	/* #APP */
+ 247               	 ;  53 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c" 1
+ 248 0098 A591      		lpm r26, Z+
+ 249 009a B491      		lpm r27, Z
+ 250               		
+ 251               	 ;  0 "" 2
+ 252               	/* #NOAPP */
+ 253               	.L14:
+ 254               	.LBE5:
+ 255 009c 8C91      		ld r24,X
+ 256 009e 8821      		and r24,r8
+ 257 00a0 8915      		cp r24,r9
+ 258 00a2 01F4      		brne .L8
+ 259 00a4 20E0      		ldi r18,lo8(0)
+ 260 00a6 30E0      		ldi r19,hi8(0)
+ 261 00a8 40E0      		ldi r20,hlo8(0)
+ 262 00aa 50E0      		ldi r21,hhi8(0)
+ 263               	.LBB6:
+  55:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 			return 0;
+  56:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	
+  57:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// wait for the pulse to stop
+  58:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	while ((*portInputRegister(port) & bit) == stateMask) {
+ 265               	.LM10:
+ 266 00ac FB01      		movw r30,r22
+ 267               	/* #APP */
+ 268               	 ;  58 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c" 1
+ 269 00ae C591      		lpm r28, Z+
+ 270 00b0 D491      		lpm r29, Z
+ 271               		
+ 272               	 ;  0 "" 2
+ 273               	/* #NOAPP */
+ 274 00b2 00C0      		rjmp .L9
+ 275               	.L10:
+ 276               	.LBE6:
+  59:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 		if (numloops++ == maxloops)
+ 278               	.LM11:
+ 279 00b4 DA01      		movw r26,r20
+ 280 00b6 C901      		movw r24,r18
+ 281 00b8 8E0D      		add r24,r14
+ 282 00ba 9F1D      		adc r25,r15
+ 283 00bc A01F      		adc r26,r16
+ 284 00be B11F      		adc r27,r17
+ 285 00c0 8A15      		cp r24,r10
+ 286 00c2 9B05      		cpc r25,r11
+ 287 00c4 AC05      		cpc r26,r12
+ 288 00c6 BD05      		cpc r27,r13
+ 289 00c8 01F0      		breq .L5
+  60:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 			return 0;
+  61:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 		width++;
+ 291               	.LM12:
+ 292 00ca 2F5F      		subi r18,lo8(-(1))
+ 293 00cc 3F4F      		sbci r19,hi8(-(1))
+ 294 00ce 4F4F      		sbci r20,hlo8(-(1))
+ 295 00d0 5F4F      		sbci r21,hhi8(-(1))
+ 296               	.L9:
+ 298               	.LM13:
+ 299 00d2 8881      		ld r24,Y
+ 300 00d4 8821      		and r24,r8
+ 301 00d6 8915      		cp r24,r9
+ 302 00d8 01F0      		breq .L10
+  62:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	}
+  63:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 
+  64:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// convert the reading to microseconds. The loop has been determined
+  65:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// to be 20 clock cycles long and have about 16 clocks between the edge
+  66:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// and the start of the loop. There will be some error introduced by
+  67:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	// the interrupt handlers.
+  68:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** 	return clockCyclesToMicroseconds(width * 21 + 16); 
+ 304               	.LM14:
+ 305 00da CA01      		movw r24,r20
+ 306 00dc B901      		movw r22,r18
+ 307 00de 25E1      		ldi r18,lo8(21)
+ 308 00e0 30E0      		ldi r19,hi8(21)
+ 309 00e2 40E0      		ldi r20,hlo8(21)
+ 310 00e4 50E0      		ldi r21,hhi8(21)
+ 311 00e6 0E94 0000 		call __mulsi3
+ 312 00ea 9B01      		movw r18,r22
+ 313 00ec AC01      		movw r20,r24
+ 314 00ee 205F      		subi r18,lo8(-(16))
+ 315 00f0 3F4F      		sbci r19,hi8(-(16))
+ 316 00f2 4F4F      		sbci r20,hlo8(-(16))
+ 317 00f4 5F4F      		sbci r21,hhi8(-(16))
+ 318 00f6 84E0      		ldi r24,4
+ 319 00f8 5695      	1:	lsr r21
+ 320 00fa 4795      		ror r20
+ 321 00fc 3795      		ror r19
+ 322 00fe 2795      		ror r18
+ 323 0100 8A95      		dec r24
+ 324 0102 01F4      		brne 1b
+ 325 0104 00C0      		rjmp .L11
+ 326               	.L5:
+ 327 0106 20E0      		ldi r18,lo8(0)
+ 328 0108 30E0      		ldi r19,hi8(0)
+ 329 010a 40E0      		ldi r20,hlo8(0)
+ 330 010c 50E0      		ldi r21,hhi8(0)
+ 331               	.L11:
+  69:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_pulse.c **** }
+ 333               	.LM15:
+ 334 010e B901      		movw r22,r18
+ 335 0110 CA01      		movw r24,r20
+ 336               	/* epilogue start */
+ 337 0112 CDB7      		in r28,__SP_L__
+ 338 0114 DEB7      		in r29,__SP_H__
+ 339 0116 ECE0      		ldi r30, lo8(12)
+ 340 0118 0C94 0000 		jmp __epilogue_restores__ + ((18 - 12) * 2)
+ 363               	.Lscope1:
+ 365               		.stabd	78,0,0
+ 389               		.text
+ 391               	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 wiring_pulse.c
+     /tmp/ccJiy7Zj.s:2      *ABS*:0000003f __SREG__
+     /tmp/ccJiy7Zj.s:3      *ABS*:0000003e __SP_H__
+     /tmp/ccJiy7Zj.s:4      *ABS*:0000003d __SP_L__
+     /tmp/ccJiy7Zj.s:5      *ABS*:00000034 __CCP__
+     /tmp/ccJiy7Zj.s:6      *ABS*:00000000 __tmp_reg__
+     /tmp/ccJiy7Zj.s:7      *ABS*:00000001 __zero_reg__
+     /tmp/ccJiy7Zj.s:117    .text.pulseIn:00000000 pulseIn
+
+UNDEFINED SYMBOLS
+__do_copy_data
+__do_clear_bss
+__prologue_saves__
+digital_pin_to_bit_mask_PGM
+digital_pin_to_port_PGM
+port_to_input_PGM
+__mulsi3
+__epilogue_restores__

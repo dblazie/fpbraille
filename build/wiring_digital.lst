@@ -1,0 +1,961 @@
+   1               		.file	"wiring_digital.c"
+   2               	__SREG__ = 0x3f
+   3               	__SP_H__ = 0x3e
+   4               	__SP_L__ = 0x3d
+   5               	__CCP__  = 0x34
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.global __do_copy_data
+   9               		.global __do_clear_bss
+  12               		.text
+  13               	.Ltext0:
+ 110               		.section	.text.pinMode,"ax",@progbits
+ 114               	.global	pinMode
+ 116               	pinMode:
+ 117               		.stabd	46,0,0
+   1:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** /*
+   2:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   wiring_digital.c - digital input and output functions
+   3:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   Part of Arduino - http://www.arduino.cc/
+   4:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+   5:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   Copyright (c) 2005-2006 David A. Mellis
+   6:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+   7:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   This library is free software; you can redistribute it and/or
+   8:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   modify it under the terms of the GNU Lesser General Public
+   9:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   License as published by the Free Software Foundation; either
+  10:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   version 2.1 of the License, or (at your option) any later version.
+  11:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+  12:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   This library is distributed in the hope that it will be useful,
+  13:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   but WITHOUT ANY WARRANTY; without even the implied warranty of
+  14:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  15:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   Lesser General Public License for more details.
+  16:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+  17:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   You should have received a copy of the GNU Lesser General
+  18:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   Public License along with this library; if not, write to the
+  19:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+  20:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   Boston, MA  02111-1307  USA
+  21:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+  22:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   Modified 28 September 2010 by Mark Sproul
+  23:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+  24:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****   $Id: wiring.c 248 2007-02-03 15:36:30Z mellis $
+  25:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** */
+  26:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+  27:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** #define ARDUINO_MAIN
+  28:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** #include "wiring_private.h"
+  29:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** #include "pins_arduino.h"
+  30:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+  31:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** void pinMode(uint8_t pin, uint8_t mode)
+  32:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** {
+ 119               	.LM0:
+ 120               	.LFBB1:
+ 121 0000 CF93      		push r28
+ 122 0002 DF93      		push r29
+ 123               	/* prologue: function */
+ 124               	/* frame size = 0 */
+ 125               	.LBB2:
+  33:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	uint8_t bit = digitalPinToBitMask(pin);
+ 127               	.LM1:
+ 128 0004 482F      		mov r20,r24
+ 129 0006 50E0      		ldi r21,lo8(0)
+ 130 0008 CA01      		movw r24,r20
+ 131 000a 8050      		subi r24,lo8(-(digital_pin_to_bit_mask_PGM))
+ 132 000c 9040      		sbci r25,hi8(-(digital_pin_to_bit_mask_PGM))
+ 133 000e FC01      		movw r30,r24
+ 134               	/* #APP */
+ 135               	 ;  33 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 136 0010 3491      		lpm r19, Z
+ 137               		
+ 138               	 ;  0 "" 2
+ 139               	/* #NOAPP */
+ 140               	.LBE2:
+ 141               	.LBB3:
+  34:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	uint8_t port = digitalPinToPort(pin);
+ 143               	.LM2:
+ 144 0012 4050      		subi r20,lo8(-(digital_pin_to_port_PGM))
+ 145 0014 5040      		sbci r21,hi8(-(digital_pin_to_port_PGM))
+ 146 0016 FA01      		movw r30,r20
+ 147               	/* #APP */
+ 148               	 ;  34 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 149 0018 8491      		lpm r24, Z
+ 150               		
+ 151               	 ;  0 "" 2
+ 152               	/* #NOAPP */
+ 153               	.LBE3:
+  35:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	volatile uint8_t *reg, *out;
+  36:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+  37:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	if (port == NOT_A_PIN) return;
+ 155               	.LM3:
+ 156 001a 8823      		tst r24
+ 157 001c 01F0      		breq .L5
+ 158               	.LBB4:
+  38:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+  39:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	// JWS: can I let the optimizer do this?
+  40:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	reg = portModeRegister(port);
+ 160               	.LM4:
+ 161 001e 90E0      		ldi r25,lo8(0)
+ 162 0020 880F      		lsl r24
+ 163 0022 991F      		rol r25
+ 164 0024 FC01      		movw r30,r24
+ 165 0026 E050      		subi r30,lo8(-(port_to_mode_PGM))
+ 166 0028 F040      		sbci r31,hi8(-(port_to_mode_PGM))
+ 167               	/* #APP */
+ 168               	 ;  40 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 169 002a A591      		lpm r26, Z+
+ 170 002c B491      		lpm r27, Z
+ 171               		
+ 172               	 ;  0 "" 2
+ 173               	/* #NOAPP */
+ 174               	.LBE4:
+ 175               	.LBB5:
+  41:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	out = portOutputRegister(port);
+ 177               	.LM5:
+ 178 002e FC01      		movw r30,r24
+ 179 0030 E050      		subi r30,lo8(-(port_to_output_PGM))
+ 180 0032 F040      		sbci r31,hi8(-(port_to_output_PGM))
+ 181               	/* #APP */
+ 182               	 ;  41 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 183 0034 C591      		lpm r28, Z+
+ 184 0036 D491      		lpm r29, Z
+ 185               		
+ 186               	 ;  0 "" 2
+ 187               	/* #NOAPP */
+ 188               	.LBE5:
+  42:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+  43:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	if (mode == INPUT) { 
+ 190               	.LM6:
+ 191 0038 6623      		tst r22
+ 192 003a 01F4      		brne .L3
+ 193               	.LBB6:
+  44:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		uint8_t oldSREG = SREG;
+ 195               	.LM7:
+ 196 003c 2FB7      		in r18,__SREG__
+  45:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****                 cli();
+ 198               	.LM8:
+ 199               	/* #APP */
+ 200               	 ;  45 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 201 003e F894      		cli
+ 202               	 ;  0 "" 2
+  46:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		*reg &= ~bit;
+ 204               	.LM9:
+ 205               	/* #NOAPP */
+ 206 0040 8C91      		ld r24,X
+ 207 0042 932F      		mov r25,r19
+ 208 0044 9095      		com r25
+ 209 0046 8923      		and r24,r25
+ 210 0048 8C93      		st X,r24
+  47:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		*out &= ~bit;
+ 212               	.LM10:
+ 213 004a 8881      		ld r24,Y
+ 214 004c 8923      		and r24,r25
+ 215 004e 00C0      		rjmp .L6
+ 216               	.L3:
+ 217               	.LBE6:
+  48:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		SREG = oldSREG;
+  49:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	} else if (mode == INPUT_PULLUP) {
+ 219               	.LM11:
+ 220 0050 6230      		cpi r22,lo8(2)
+ 221 0052 01F4      		brne .L4
+ 222               	.LBB7:
+  50:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		uint8_t oldSREG = SREG;
+ 224               	.LM12:
+ 225 0054 2FB7      		in r18,__SREG__
+  51:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****                 cli();
+ 227               	.LM13:
+ 228               	/* #APP */
+ 229               	 ;  51 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 230 0056 F894      		cli
+ 231               	 ;  0 "" 2
+  52:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		*reg &= ~bit;
+ 233               	.LM14:
+ 234               	/* #NOAPP */
+ 235 0058 8C91      		ld r24,X
+ 236 005a 932F      		mov r25,r19
+ 237 005c 9095      		com r25
+ 238 005e 8923      		and r24,r25
+ 239 0060 8C93      		st X,r24
+  53:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		*out |= bit;
+ 241               	.LM15:
+ 242 0062 8881      		ld r24,Y
+ 243 0064 832B      		or r24,r19
+ 244               	.L6:
+ 245 0066 8883      		st Y,r24
+  54:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		SREG = oldSREG;
+ 247               	.LM16:
+ 248 0068 2FBF      		out __SREG__,r18
+ 249 006a 00C0      		rjmp .L5
+ 250               	.L4:
+ 251               	.LBE7:
+ 252               	.LBB8:
+  55:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	} else {
+  56:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		uint8_t oldSREG = SREG;
+ 254               	.LM17:
+ 255 006c 9FB7      		in r25,__SREG__
+  57:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c ****                 cli();
+ 257               	.LM18:
+ 258               	/* #APP */
+ 259               	 ;  57 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 260 006e F894      		cli
+ 261               	 ;  0 "" 2
+  58:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		*reg |= bit;
+ 263               	.LM19:
+ 264               	/* #NOAPP */
+ 265 0070 8C91      		ld r24,X
+ 266 0072 832B      		or r24,r19
+ 267 0074 8C93      		st X,r24
+  59:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		SREG = oldSREG;
+ 269               	.LM20:
+ 270 0076 9FBF      		out __SREG__,r25
+ 271               	.L5:
+ 272               	/* epilogue start */
+ 273               	.LBE8:
+  60:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	}
+  61:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** }
+ 275               	.LM21:
+ 276 0078 DF91      		pop r29
+ 277 007a CF91      		pop r28
+ 278 007c 0895      		ret
+ 303               	.Lscope1:
+ 305               		.stabd	78,0,0
+ 306               		.section	.text.turnOffPWM,"ax",@progbits
+ 310               	turnOffPWM:
+ 311               		.stabd	46,0,0
+  62:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+  63:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** // Forcing this inline keeps the callers from having to push their own stuff
+  64:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** // on the stack. It is a good performance win and only takes 1 more byte per
+  65:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** // user than calling. (It will take more bytes on the 168.)
+  66:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** //
+  67:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** // But shouldn't this be moved into pinMode? Seems silly to check and do on
+  68:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** // each digitalread or write.
+  69:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** //
+  70:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** // Mark Sproul:
+  71:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** // - Removed inline. Save 170 bytes on atmega1280
+  72:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** // - changed to a switch statment; added 32 bytes but much easier to read and maintain.
+  73:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** // - Added more #ifdefs, now compiles for atmega645
+  74:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** //
+  75:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** //static inline void turnOffPWM(uint8_t timer) __attribute__ ((always_inline));
+  76:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** //static inline void turnOffPWM(uint8_t timer)
+  77:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** static void turnOffPWM(uint8_t timer)
+  78:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** {
+ 313               	.LM22:
+ 314               	.LFBB2:
+ 315               	/* prologue: function */
+ 316               	/* frame size = 0 */
+  79:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	switch (timer)
+ 318               	.LM23:
+ 319 0000 90E0      		ldi r25,lo8(0)
+ 320 0002 FC01      		movw r30,r24
+ 321 0004 3197      		sbiw r30,1
+ 322 0006 E131      		cpi r30,17
+ 323 0008 F105      		cpc r31,__zero_reg__
+ 324 000a 00F0      		brlo .+2
+ 325 000c 00C0      		rjmp .L25
+ 326 000e E050      		subi r30,lo8(-(gs(.L24)))
+ 327 0010 F040      		sbci r31,hi8(-(gs(.L24)))
+ 328 0012 0C94 0000 		jmp __tablejump2__
+ 329               		.data
+ 330               		.section .progmem.gcc_sw_table, "a", @progbits
+ 331               		.p2align 1
+ 332               	.L24:
+ 333               		.data
+ 334               		.section .progmem.gcc_sw_table, "a", @progbits
+ 335               		.p2align 1
+ 336 0000 0000      		.word gs(.L9)
+ 337 0002 0000      		.word gs(.L10)
+ 338 0004 0000      		.word gs(.L11)
+ 339 0006 0000      		.word gs(.L12)
+ 340 0008 0000      		.word gs(.L25)
+ 341 000a 0000      		.word gs(.L13)
+ 342 000c 0000      		.word gs(.L14)
+ 343 000e 0000      		.word gs(.L15)
+ 344 0010 0000      		.word gs(.L16)
+ 345 0012 0000      		.word gs(.L17)
+ 346 0014 0000      		.word gs(.L18)
+ 347 0016 0000      		.word gs(.L19)
+ 348 0018 0000      		.word gs(.L20)
+ 349 001a 0000      		.word gs(.L25)
+ 350 001c 0000      		.word gs(.L21)
+ 351 001e 0000      		.word gs(.L22)
+ 352 0020 0000      		.word gs(.L23)
+ 353               		.section	.text.turnOffPWM
+ 354               	.L11:
+  80:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	{
+  81:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR1A) && defined(COM1A1)
+  82:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case TIMER1A:   cbi(TCCR1A, COM1A1);    break;
+ 356               	.LM24:
+ 357 0016 8091 8000 		lds r24,128
+ 358 001a 8F77      		andi r24,lo8(127)
+ 359 001c 00C0      		rjmp .L27
+ 360               	.L12:
+  83:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+  84:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR1A) && defined(COM1B1)
+  85:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case TIMER1B:   cbi(TCCR1A, COM1B1);    break;
+ 362               	.LM25:
+ 363 001e 8091 8000 		lds r24,128
+ 364 0022 8F7D      		andi r24,lo8(-33)
+ 365               	.L27:
+ 366 0024 8093 8000 		sts 128,r24
+ 367 0028 0895      		ret
+ 368               	.L9:
+  86:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+  87:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		
+  88:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR2) && defined(COM21)
+  89:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER2:   cbi(TCCR2, COM21);      break;
+  90:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+  91:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		
+  92:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR0A) && defined(COM0A1)
+  93:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER0A:  cbi(TCCR0A, COM0A1);    break;
+ 370               	.LM26:
+ 371 002a 84B5      		in r24,68-32
+ 372 002c 8F77      		andi r24,lo8(127)
+ 373 002e 00C0      		rjmp .L29
+ 374               	.L10:
+  94:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+  95:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		
+  96:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TIMER0B) && defined(COM0B1)
+  97:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER0B:  cbi(TCCR0A, COM0B1);    break;
+ 376               	.LM27:
+ 377 0030 84B5      		in r24,68-32
+ 378 0032 8F7D      		andi r24,lo8(-33)
+ 379               	.L29:
+ 380 0034 84BD      		out 68-32,r24
+ 381 0036 0895      		ret
+ 382               	.L13:
+  98:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+  99:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR2A) && defined(COM2A1)
+ 100:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER2A:  cbi(TCCR2A, COM2A1);    break;
+ 384               	.LM28:
+ 385 0038 8091 B000 		lds r24,176
+ 386 003c 8F77      		andi r24,lo8(127)
+ 387 003e 00C0      		rjmp .L30
+ 388               	.L14:
+ 101:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+ 102:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR2A) && defined(COM2B1)
+ 103:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER2B:  cbi(TCCR2A, COM2B1);    break;
+ 390               	.LM29:
+ 391 0040 8091 B000 		lds r24,176
+ 392 0044 8F7D      		andi r24,lo8(-33)
+ 393               	.L30:
+ 394 0046 8093 B000 		sts 176,r24
+ 395 004a 0895      		ret
+ 396               	.L15:
+ 104:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+ 105:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		
+ 106:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR3A) && defined(COM3A1)
+ 107:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER3A:  cbi(TCCR3A, COM3A1);    break;
+ 398               	.LM30:
+ 399 004c 8091 9000 		lds r24,144
+ 400 0050 8F77      		andi r24,lo8(127)
+ 401 0052 00C0      		rjmp .L31
+ 402               	.L16:
+ 108:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+ 109:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR3A) && defined(COM3B1)
+ 110:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER3B:  cbi(TCCR3A, COM3B1);    break;
+ 404               	.LM31:
+ 405 0054 8091 9000 		lds r24,144
+ 406 0058 8F7D      		andi r24,lo8(-33)
+ 407 005a 00C0      		rjmp .L31
+ 408               	.L17:
+ 111:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+ 112:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR3A) && defined(COM3C1)
+ 113:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER3C:  cbi(TCCR3A, COM3C1);    break;
+ 410               	.LM32:
+ 411 005c 8091 9000 		lds r24,144
+ 412 0060 877F      		andi r24,lo8(-9)
+ 413               	.L31:
+ 414 0062 8093 9000 		sts 144,r24
+ 415 0066 0895      		ret
+ 416               	.L18:
+ 114:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+ 115:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 116:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR4A) && defined(COM4A1)
+ 117:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER4A:  cbi(TCCR4A, COM4A1);    break;
+ 418               	.LM33:
+ 419 0068 8091 A000 		lds r24,160
+ 420 006c 8F77      		andi r24,lo8(127)
+ 421 006e 00C0      		rjmp .L28
+ 422               	.L19:
+ 118:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif					
+ 119:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR4A) && defined(COM4B1)
+ 120:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER4B:  cbi(TCCR4A, COM4B1);    break;
+ 424               	.LM34:
+ 425 0070 8091 A000 		lds r24,160
+ 426 0074 8F7D      		andi r24,lo8(-33)
+ 427 0076 00C0      		rjmp .L28
+ 428               	.L20:
+ 121:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+ 122:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR4A) && defined(COM4C1)
+ 123:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER4C:  cbi(TCCR4A, COM4C1);    break;
+ 430               	.LM35:
+ 431 0078 8091 A000 		lds r24,160
+ 432 007c 877F      		andi r24,lo8(-9)
+ 433               	.L28:
+ 434 007e 8093 A000 		sts 160,r24
+ 435 0082 0895      		ret
+ 436               	.L21:
+ 124:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif			
+ 125:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR4C) && defined(COM4D1)
+ 126:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case TIMER4D:	cbi(TCCR4C, COM4D1);	break;
+ 127:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif			
+ 128:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 			
+ 129:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#if defined(TCCR5A)
+ 130:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER5A:  cbi(TCCR5A, COM5A1);    break;
+ 438               	.LM36:
+ 439 0084 8091 2001 		lds r24,288
+ 440 0088 8F77      		andi r24,lo8(127)
+ 441 008a 00C0      		rjmp .L26
+ 442               	.L22:
+ 131:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER5B:  cbi(TCCR5A, COM5B1);    break;
+ 444               	.LM37:
+ 445 008c 8091 2001 		lds r24,288
+ 446 0090 8F7D      		andi r24,lo8(-33)
+ 447               	.L26:
+ 448 0092 8093 2001 		sts 288,r24
+ 449 0096 0895      		ret
+ 450               	.L23:
+ 132:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		case  TIMER5C:  cbi(TCCR5A, COM5C1);    break;
+ 452               	.LM38:
+ 453 0098 8091 2001 		lds r24,288
+ 454 009c 877F      		andi r24,lo8(-9)
+ 455 009e 8093 2001 		sts 288,r24
+ 456               	.L25:
+ 457 00a2 0895      		ret
+ 459               	.Lscope2:
+ 461               		.stabd	78,0,0
+ 462               		.section	.text.digitalWrite,"ax",@progbits
+ 466               	.global	digitalWrite
+ 468               	digitalWrite:
+ 469               		.stabd	46,0,0
+ 133:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		#endif
+ 134:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	}
+ 135:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** }
+ 136:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 137:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** void digitalWrite(uint8_t pin, uint8_t val)
+ 138:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** {
+ 471               	.LM39:
+ 472               	.LFBB3:
+ 473 0000 FF92      		push r15
+ 474 0002 0F93      		push r16
+ 475 0004 1F93      		push r17
+ 476               	/* prologue: function */
+ 477               	/* frame size = 0 */
+ 478 0006 F62E      		mov r15,r22
+ 479               	.LBB9:
+ 139:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	uint8_t timer = digitalPinToTimer(pin);
+ 481               	.LM40:
+ 482 0008 482F      		mov r20,r24
+ 483 000a 50E0      		ldi r21,lo8(0)
+ 484 000c CA01      		movw r24,r20
+ 485 000e 8050      		subi r24,lo8(-(digital_pin_to_timer_PGM))
+ 486 0010 9040      		sbci r25,hi8(-(digital_pin_to_timer_PGM))
+ 487 0012 FC01      		movw r30,r24
+ 488               	/* #APP */
+ 489               	 ;  139 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 490 0014 2491      		lpm r18, Z
+ 491               		
+ 492               	 ;  0 "" 2
+ 493               	/* #NOAPP */
+ 494               	.LBE9:
+ 495               	.LBB10:
+ 140:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	uint8_t bit = digitalPinToBitMask(pin);
+ 497               	.LM41:
+ 498 0016 CA01      		movw r24,r20
+ 499 0018 8050      		subi r24,lo8(-(digital_pin_to_bit_mask_PGM))
+ 500 001a 9040      		sbci r25,hi8(-(digital_pin_to_bit_mask_PGM))
+ 501 001c FC01      		movw r30,r24
+ 502               	/* #APP */
+ 503               	 ;  140 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 504 001e 1491      		lpm r17, Z
+ 505               		
+ 506               	 ;  0 "" 2
+ 507               	/* #NOAPP */
+ 508               	.LBE10:
+ 509               	.LBB11:
+ 141:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	uint8_t port = digitalPinToPort(pin);
+ 511               	.LM42:
+ 512 0020 4050      		subi r20,lo8(-(digital_pin_to_port_PGM))
+ 513 0022 5040      		sbci r21,hi8(-(digital_pin_to_port_PGM))
+ 514 0024 FA01      		movw r30,r20
+ 515               	/* #APP */
+ 516               	 ;  141 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 517 0026 0491      		lpm r16, Z
+ 518               		
+ 519               	 ;  0 "" 2
+ 520               	/* #NOAPP */
+ 521               	.LBE11:
+ 142:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	volatile uint8_t *out;
+ 143:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 144:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	if (port == NOT_A_PIN) return;
+ 523               	.LM43:
+ 524 0028 0023      		tst r16
+ 525 002a 01F0      		breq .L37
+ 145:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 146:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	// If the pin that support PWM output, we need to turn it off
+ 147:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	// before doing a digital write.
+ 148:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	if (timer != NOT_ON_TIMER) turnOffPWM(timer);
+ 527               	.LM44:
+ 528 002c 2223      		tst r18
+ 529 002e 01F0      		breq .L34
+ 530 0030 822F      		mov r24,r18
+ 531 0032 0E94 0000 		call turnOffPWM
+ 532               	.L34:
+ 533               	.LBB12:
+ 149:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 150:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	out = portOutputRegister(port);
+ 535               	.LM45:
+ 536 0036 E02F      		mov r30,r16
+ 537 0038 F0E0      		ldi r31,lo8(0)
+ 538 003a EE0F      		lsl r30
+ 539 003c FF1F      		rol r31
+ 540 003e E050      		subi r30,lo8(-(port_to_output_PGM))
+ 541 0040 F040      		sbci r31,hi8(-(port_to_output_PGM))
+ 542               	/* #APP */
+ 543               	 ;  150 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 544 0042 A591      		lpm r26, Z+
+ 545 0044 B491      		lpm r27, Z
+ 546               		
+ 547               	 ;  0 "" 2
+ 548               	/* #NOAPP */
+ 549               	.LBE12:
+ 151:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 152:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	uint8_t oldSREG = SREG;
+ 551               	.LM46:
+ 552 0046 9FB7      		in r25,__SREG__
+ 153:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	cli();
+ 554               	.LM47:
+ 555               	/* #APP */
+ 556               	 ;  153 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 557 0048 F894      		cli
+ 558               	 ;  0 "" 2
+ 154:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 155:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	if (val == LOW) {
+ 560               	.LM48:
+ 561               	/* #NOAPP */
+ 562 004a FF20      		tst r15
+ 563 004c 01F4      		brne .L35
+ 156:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		*out &= ~bit;
+ 565               	.LM49:
+ 566 004e 8C91      		ld r24,X
+ 567 0050 1095      		com r17
+ 568 0052 8123      		and r24,r17
+ 569 0054 00C0      		rjmp .L38
+ 570               	.L35:
+ 157:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	} else {
+ 158:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 		*out |= bit;
+ 572               	.LM50:
+ 573 0056 8C91      		ld r24,X
+ 574 0058 812B      		or r24,r17
+ 575               	.L38:
+ 576 005a 8C93      		st X,r24
+ 159:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	}
+ 160:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 161:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	SREG = oldSREG;
+ 578               	.LM51:
+ 579 005c 9FBF      		out __SREG__,r25
+ 580               	.L37:
+ 581               	/* epilogue start */
+ 162:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** }
+ 583               	.LM52:
+ 584 005e 1F91      		pop r17
+ 585 0060 0F91      		pop r16
+ 586 0062 FF90      		pop r15
+ 587 0064 0895      		ret
+ 605               	.Lscope3:
+ 607               		.stabd	78,0,0
+ 608               		.section	.text.digitalRead,"ax",@progbits
+ 611               	.global	digitalRead
+ 613               	digitalRead:
+ 614               		.stabd	46,0,0
+ 163:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 164:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** int digitalRead(uint8_t pin)
+ 165:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** {
+ 616               	.LM53:
+ 617               	.LFBB4:
+ 618 0000 0F93      		push r16
+ 619 0002 1F93      		push r17
+ 620               	/* prologue: function */
+ 621               	/* frame size = 0 */
+ 622               	.LBB13:
+ 166:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	uint8_t timer = digitalPinToTimer(pin);
+ 624               	.LM54:
+ 625 0004 482F      		mov r20,r24
+ 626 0006 50E0      		ldi r21,lo8(0)
+ 627 0008 CA01      		movw r24,r20
+ 628 000a 8050      		subi r24,lo8(-(digital_pin_to_timer_PGM))
+ 629 000c 9040      		sbci r25,hi8(-(digital_pin_to_timer_PGM))
+ 630 000e FC01      		movw r30,r24
+ 631               	/* #APP */
+ 632               	 ;  166 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 633 0010 2491      		lpm r18, Z
+ 634               		
+ 635               	 ;  0 "" 2
+ 636               	/* #NOAPP */
+ 637               	.LBE13:
+ 638               	.LBB14:
+ 167:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	uint8_t bit = digitalPinToBitMask(pin);
+ 640               	.LM55:
+ 641 0012 CA01      		movw r24,r20
+ 642 0014 8050      		subi r24,lo8(-(digital_pin_to_bit_mask_PGM))
+ 643 0016 9040      		sbci r25,hi8(-(digital_pin_to_bit_mask_PGM))
+ 644 0018 FC01      		movw r30,r24
+ 645               	/* #APP */
+ 646               	 ;  167 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 647 001a 0491      		lpm r16, Z
+ 648               		
+ 649               	 ;  0 "" 2
+ 650               	/* #NOAPP */
+ 651               	.LBE14:
+ 652               	.LBB15:
+ 168:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	uint8_t port = digitalPinToPort(pin);
+ 654               	.LM56:
+ 655 001c 4050      		subi r20,lo8(-(digital_pin_to_port_PGM))
+ 656 001e 5040      		sbci r21,hi8(-(digital_pin_to_port_PGM))
+ 657 0020 FA01      		movw r30,r20
+ 658               	/* #APP */
+ 659               	 ;  168 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 660 0022 1491      		lpm r17, Z
+ 661               		
+ 662               	 ;  0 "" 2
+ 663               	/* #NOAPP */
+ 664               	.LBE15:
+ 169:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 170:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	if (port == NOT_A_PIN) return LOW;
+ 666               	.LM57:
+ 667 0024 1123      		tst r17
+ 668 0026 01F4      		brne .L40
+ 669 0028 20E0      		ldi r18,lo8(0)
+ 670 002a 30E0      		ldi r19,hi8(0)
+ 671 002c 00C0      		rjmp .L41
+ 672               	.L40:
+ 171:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 172:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	// If the pin that support PWM output, we need to turn it off
+ 173:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	// before getting a digital reading.
+ 174:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	if (timer != NOT_ON_TIMER) turnOffPWM(timer);
+ 674               	.LM58:
+ 675 002e 2223      		tst r18
+ 676 0030 01F0      		breq .L42
+ 677 0032 822F      		mov r24,r18
+ 678 0034 0E94 0000 		call turnOffPWM
+ 679               	.L42:
+ 680               	.LBB16:
+ 175:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 
+ 176:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	if (*portInputRegister(port) & bit) return HIGH;
+ 682               	.LM59:
+ 683 0038 812F      		mov r24,r17
+ 684 003a 90E0      		ldi r25,lo8(0)
+ 685 003c 880F      		lsl r24
+ 686 003e 991F      		rol r25
+ 687 0040 8050      		subi r24,lo8(-(port_to_input_PGM))
+ 688 0042 9040      		sbci r25,hi8(-(port_to_input_PGM))
+ 689 0044 FC01      		movw r30,r24
+ 690               	/* #APP */
+ 691               	 ;  176 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c" 1
+ 692 0046 A591      		lpm r26, Z+
+ 693 0048 B491      		lpm r27, Z
+ 694               		
+ 695               	 ;  0 "" 2
+ 696               	/* #NOAPP */
+ 697               	.LBE16:
+ 698 004a 8C91      		ld r24,X
+ 699 004c 20E0      		ldi r18,lo8(0)
+ 700 004e 30E0      		ldi r19,hi8(0)
+ 701 0050 8023      		and r24,r16
+ 702 0052 01F0      		breq .L41
+ 703 0054 21E0      		ldi r18,lo8(1)
+ 704 0056 30E0      		ldi r19,hi8(1)
+ 705               	.L41:
+ 177:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** 	return LOW;
+ 178:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_digital.c **** }
+ 707               	.LM60:
+ 708 0058 C901      		movw r24,r18
+ 709               	/* epilogue start */
+ 710 005a 1F91      		pop r17
+ 711 005c 0F91      		pop r16
+ 712 005e 0895      		ret
+ 727               	.Lscope4:
+ 729               		.stabd	78,0,0
+ 730               	.global	port_to_mode_PGM
+ 731               		.section	.progmem.data,"a",@progbits
+ 734               	port_to_mode_PGM:
+ 735 0000 0000      		.word	0
+ 736 0002 2100      		.word	33
+ 737 0004 2400      		.word	36
+ 738 0006 2700      		.word	39
+ 739 0008 2A00      		.word	42
+ 740 000a 2D00      		.word	45
+ 741 000c 3000      		.word	48
+ 742 000e 3300      		.word	51
+ 743 0010 0101      		.word	257
+ 744 0012 0000      		.word	0
+ 745 0014 0401      		.word	260
+ 746 0016 0701      		.word	263
+ 747 0018 0A01      		.word	266
+ 748               	.global	port_to_output_PGM
+ 751               	port_to_output_PGM:
+ 752 001a 0000      		.word	0
+ 753 001c 2200      		.word	34
+ 754 001e 2500      		.word	37
+ 755 0020 2800      		.word	40
+ 756 0022 2B00      		.word	43
+ 757 0024 2E00      		.word	46
+ 758 0026 3100      		.word	49
+ 759 0028 3400      		.word	52
+ 760 002a 0201      		.word	258
+ 761 002c 0000      		.word	0
+ 762 002e 0501      		.word	261
+ 763 0030 0801      		.word	264
+ 764 0032 0B01      		.word	267
+ 765               	.global	port_to_input_PGM
+ 768               	port_to_input_PGM:
+ 769 0034 0000      		.word	0
+ 770 0036 2000      		.word	32
+ 771 0038 2300      		.word	35
+ 772 003a 2600      		.word	38
+ 773 003c 2900      		.word	41
+ 774 003e 2C00      		.word	44
+ 775 0040 2F00      		.word	47
+ 776 0042 3200      		.word	50
+ 777 0044 0001      		.word	256
+ 778 0046 0000      		.word	0
+ 779 0048 0301      		.word	259
+ 780 004a 0601      		.word	262
+ 781 004c 0901      		.word	265
+ 782               	.global	digital_pin_to_port_PGM
+ 785               	digital_pin_to_port_PGM:
+ 786 004e 05        		.byte	5
+ 787 004f 05        		.byte	5
+ 788 0050 05        		.byte	5
+ 789 0051 05        		.byte	5
+ 790 0052 07        		.byte	7
+ 791 0053 05        		.byte	5
+ 792 0054 08        		.byte	8
+ 793 0055 08        		.byte	8
+ 794 0056 08        		.byte	8
+ 795 0057 08        		.byte	8
+ 796 0058 02        		.byte	2
+ 797 0059 02        		.byte	2
+ 798 005a 02        		.byte	2
+ 799 005b 02        		.byte	2
+ 800 005c 0A        		.byte	10
+ 801 005d 0A        		.byte	10
+ 802 005e 08        		.byte	8
+ 803 005f 08        		.byte	8
+ 804 0060 04        		.byte	4
+ 805 0061 04        		.byte	4
+ 806 0062 04        		.byte	4
+ 807 0063 04        		.byte	4
+ 808 0064 01        		.byte	1
+ 809 0065 01        		.byte	1
+ 810 0066 01        		.byte	1
+ 811 0067 01        		.byte	1
+ 812 0068 01        		.byte	1
+ 813 0069 01        		.byte	1
+ 814 006a 01        		.byte	1
+ 815 006b 01        		.byte	1
+ 816 006c 03        		.byte	3
+ 817 006d 03        		.byte	3
+ 818 006e 03        		.byte	3
+ 819 006f 03        		.byte	3
+ 820 0070 03        		.byte	3
+ 821 0071 03        		.byte	3
+ 822 0072 03        		.byte	3
+ 823 0073 03        		.byte	3
+ 824 0074 04        		.byte	4
+ 825 0075 07        		.byte	7
+ 826 0076 07        		.byte	7
+ 827 0077 07        		.byte	7
+ 828 0078 0C        		.byte	12
+ 829 0079 0C        		.byte	12
+ 830 007a 0C        		.byte	12
+ 831 007b 0C        		.byte	12
+ 832 007c 0C        		.byte	12
+ 833 007d 0C        		.byte	12
+ 834 007e 0C        		.byte	12
+ 835 007f 0C        		.byte	12
+ 836 0080 02        		.byte	2
+ 837 0081 02        		.byte	2
+ 838 0082 02        		.byte	2
+ 839 0083 02        		.byte	2
+ 840 0084 06        		.byte	6
+ 841 0085 06        		.byte	6
+ 842 0086 06        		.byte	6
+ 843 0087 06        		.byte	6
+ 844 0088 06        		.byte	6
+ 845 0089 06        		.byte	6
+ 846 008a 06        		.byte	6
+ 847 008b 06        		.byte	6
+ 848 008c 0B        		.byte	11
+ 849 008d 0B        		.byte	11
+ 850 008e 0B        		.byte	11
+ 851 008f 0B        		.byte	11
+ 852 0090 0B        		.byte	11
+ 853 0091 0B        		.byte	11
+ 854 0092 0B        		.byte	11
+ 855 0093 0B        		.byte	11
+ 856               	.global	digital_pin_to_bit_mask_PGM
+ 859               	digital_pin_to_bit_mask_PGM:
+ 860 0094 01        		.byte	1
+ 861 0095 02        		.byte	2
+ 862 0096 10        		.byte	16
+ 863 0097 20        		.byte	32
+ 864 0098 20        		.byte	32
+ 865 0099 08        		.byte	8
+ 866 009a 08        		.byte	8
+ 867 009b 10        		.byte	16
+ 868 009c 20        		.byte	32
+ 869 009d 40        		.byte	64
+ 870 009e 10        		.byte	16
+ 871 009f 20        		.byte	32
+ 872 00a0 40        		.byte	64
+ 873 00a1 80        		.byte	-128
+ 874 00a2 02        		.byte	2
+ 875 00a3 01        		.byte	1
+ 876 00a4 02        		.byte	2
+ 877 00a5 01        		.byte	1
+ 878 00a6 08        		.byte	8
+ 879 00a7 04        		.byte	4
+ 880 00a8 02        		.byte	2
+ 881 00a9 01        		.byte	1
+ 882 00aa 01        		.byte	1
+ 883 00ab 02        		.byte	2
+ 884 00ac 04        		.byte	4
+ 885 00ad 08        		.byte	8
+ 886 00ae 10        		.byte	16
+ 887 00af 20        		.byte	32
+ 888 00b0 40        		.byte	64
+ 889 00b1 80        		.byte	-128
+ 890 00b2 80        		.byte	-128
+ 891 00b3 40        		.byte	64
+ 892 00b4 20        		.byte	32
+ 893 00b5 10        		.byte	16
+ 894 00b6 08        		.byte	8
+ 895 00b7 04        		.byte	4
+ 896 00b8 02        		.byte	2
+ 897 00b9 01        		.byte	1
+ 898 00ba 80        		.byte	-128
+ 899 00bb 04        		.byte	4
+ 900 00bc 02        		.byte	2
+ 901 00bd 01        		.byte	1
+ 902 00be 80        		.byte	-128
+ 903 00bf 40        		.byte	64
+ 904 00c0 20        		.byte	32
+ 905 00c1 10        		.byte	16
+ 906 00c2 08        		.byte	8
+ 907 00c3 04        		.byte	4
+ 908 00c4 02        		.byte	2
+ 909 00c5 01        		.byte	1
+ 910 00c6 08        		.byte	8
+ 911 00c7 04        		.byte	4
+ 912 00c8 02        		.byte	2
+ 913 00c9 01        		.byte	1
+ 914 00ca 01        		.byte	1
+ 915 00cb 02        		.byte	2
+ 916 00cc 04        		.byte	4
+ 917 00cd 08        		.byte	8
+ 918 00ce 10        		.byte	16
+ 919 00cf 20        		.byte	32
+ 920 00d0 40        		.byte	64
+ 921 00d1 80        		.byte	-128
+ 922 00d2 01        		.byte	1
+ 923 00d3 02        		.byte	2
+ 924 00d4 04        		.byte	4
+ 925 00d5 08        		.byte	8
+ 926 00d6 10        		.byte	16
+ 927 00d7 20        		.byte	32
+ 928 00d8 40        		.byte	64
+ 929 00d9 80        		.byte	-128
+ 930               	.global	digital_pin_to_timer_PGM
+ 933               	digital_pin_to_timer_PGM:
+ 934 00da 00        		.byte	0
+ 935 00db 00        		.byte	0
+ 936 00dc 09        		.byte	9
+ 937 00dd 0A        		.byte	10
+ 938 00de 02        		.byte	2
+ 939 00df 08        		.byte	8
+ 940 00e0 0B        		.byte	11
+ 941 00e1 0C        		.byte	12
+ 942 00e2 0D        		.byte	13
+ 943 00e3 07        		.byte	7
+ 944 00e4 06        		.byte	6
+ 945 00e5 03        		.byte	3
+ 946 00e6 04        		.byte	4
+ 947 00e7 01        		.byte	1
+ 948 00e8 00        		.byte	0
+ 949 00e9 00        		.byte	0
+ 950 00ea 00        		.byte	0
+ 951 00eb 00        		.byte	0
+ 952 00ec 00        		.byte	0
+ 953 00ed 00        		.byte	0
+ 954 00ee 00        		.byte	0
+ 955 00ef 00        		.byte	0
+ 956 00f0 00        		.byte	0
+ 957 00f1 00        		.byte	0
+ 958 00f2 00        		.byte	0
+ 959 00f3 00        		.byte	0
+ 960 00f4 00        		.byte	0
+ 961 00f5 00        		.byte	0
+ 962 00f6 00        		.byte	0
+ 963 00f7 00        		.byte	0
+ 964 00f8 00        		.byte	0
+ 965 00f9 00        		.byte	0
+ 966 00fa 00        		.byte	0
+ 967 00fb 00        		.byte	0
+ 968 00fc 00        		.byte	0
+ 969 00fd 00        		.byte	0
+ 970 00fe 00        		.byte	0
+ 971 00ff 00        		.byte	0
+ 972 0100 00        		.byte	0
+ 973 0101 00        		.byte	0
+ 974 0102 00        		.byte	0
+ 975 0103 00        		.byte	0
+ 976 0104 00        		.byte	0
+ 977 0105 00        		.byte	0
+ 978 0106 11        		.byte	17
+ 979 0107 10        		.byte	16
+ 980 0108 0F        		.byte	15
+ 981 0109 00        		.byte	0
+ 982 010a 00        		.byte	0
+ 983 010b 00        		.byte	0
+ 984 010c 00        		.byte	0
+ 985 010d 00        		.byte	0
+ 986 010e 00        		.byte	0
+ 987 010f 00        		.byte	0
+ 988 0110 00        		.byte	0
+ 989 0111 00        		.byte	0
+ 990 0112 00        		.byte	0
+ 991 0113 00        		.byte	0
+ 992 0114 00        		.byte	0
+ 993 0115 00        		.byte	0
+ 994 0116 00        		.byte	0
+ 995 0117 00        		.byte	0
+ 996 0118 00        		.byte	0
+ 997 0119 00        		.byte	0
+ 998 011a 00        		.byte	0
+ 999 011b 00        		.byte	0
+ 1000 011c 00        		.byte	0
+ 1001 011d 00        		.byte	0
+ 1002 011e 00        		.byte	0
+ 1003 011f 00        		.byte	0
+ 1033               		.text
+ 1035               	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 wiring_digital.c
+     /tmp/ccnuFqdc.s:2      *ABS*:0000003f __SREG__
+     /tmp/ccnuFqdc.s:3      *ABS*:0000003e __SP_H__
+     /tmp/ccnuFqdc.s:4      *ABS*:0000003d __SP_L__
+     /tmp/ccnuFqdc.s:5      *ABS*:00000034 __CCP__
+     /tmp/ccnuFqdc.s:6      *ABS*:00000000 __tmp_reg__
+     /tmp/ccnuFqdc.s:7      *ABS*:00000001 __zero_reg__
+     /tmp/ccnuFqdc.s:116    .text.pinMode:00000000 pinMode
+     /tmp/ccnuFqdc.s:859    .progmem.data:00000094 digital_pin_to_bit_mask_PGM
+     /tmp/ccnuFqdc.s:785    .progmem.data:0000004e digital_pin_to_port_PGM
+     /tmp/ccnuFqdc.s:734    .progmem.data:00000000 port_to_mode_PGM
+     /tmp/ccnuFqdc.s:751    .progmem.data:0000001a port_to_output_PGM
+     /tmp/ccnuFqdc.s:310    .text.turnOffPWM:00000000 turnOffPWM
+     /tmp/ccnuFqdc.s:468    .text.digitalWrite:00000000 digitalWrite
+     /tmp/ccnuFqdc.s:933    .progmem.data:000000da digital_pin_to_timer_PGM
+     /tmp/ccnuFqdc.s:613    .text.digitalRead:00000000 digitalRead
+     /tmp/ccnuFqdc.s:768    .progmem.data:00000034 port_to_input_PGM
+
+UNDEFINED SYMBOLS
+__do_copy_data
+__do_clear_bss
+__tablejump2__

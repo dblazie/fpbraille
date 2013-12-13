@@ -1,0 +1,81 @@
+stepper.o: stepper.cpp Marlin.h fastio.h Configuration.h \
+  Configuration_adv.h thermistortables.h pins.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Arduino.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/binary.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WCharacter.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/HardwareSerial.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/variants/mega/pins_arduino.h \
+  MarlinSerial.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h \
+  stepper.h planner.h temperature.h ultralcd.h language.h cardreader.h \
+  SdFile.h SdBaseFile.h SdFatConfig.h SdVolume.h Sd2Card.h Sd2PinMap.h \
+  SdInfo.h SdFatStructs.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Print.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Printable.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/new.h \
+  speed_lookuptable.h
+
+Marlin.h:
+
+fastio.h:
+
+Configuration.h:
+
+Configuration_adv.h:
+
+thermistortables.h:
+
+pins.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Arduino.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/binary.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WCharacter.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/HardwareSerial.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/variants/mega/pins_arduino.h:
+
+MarlinSerial.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h:
+
+stepper.h:
+
+planner.h:
+
+temperature.h:
+
+ultralcd.h:
+
+language.h:
+
+cardreader.h:
+
+SdFile.h:
+
+SdBaseFile.h:
+
+SdFatConfig.h:
+
+SdVolume.h:
+
+Sd2Card.h:
+
+Sd2PinMap.h:
+
+SdInfo.h:
+
+SdFatStructs.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Print.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Printable.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/new.h:
+
+speed_lookuptable.h:

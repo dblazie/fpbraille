@@ -1,0 +1,635 @@
+   1               		.file	"wiring_analog.c"
+   2               	__SREG__ = 0x3f
+   3               	__SP_H__ = 0x3e
+   4               	__SP_L__ = 0x3d
+   5               	__CCP__  = 0x34
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.global __do_copy_data
+   9               		.global __do_clear_bss
+  12               		.text
+  13               	.Ltext0:
+ 110               		.section	.text.analogReference,"ax",@progbits
+ 113               	.global	analogReference
+ 115               	analogReference:
+ 116               		.stabd	46,0,0
+   1:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** /*
+   2:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   wiring_analog.c - analog input and output
+   3:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   Part of Arduino - http://www.arduino.cc/
+   4:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+   5:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   Copyright (c) 2005-2006 David A. Mellis
+   6:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+   7:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   This library is free software; you can redistribute it and/or
+   8:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   modify it under the terms of the GNU Lesser General Public
+   9:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   License as published by the Free Software Foundation; either
+  10:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   version 2.1 of the License, or (at your option) any later version.
+  11:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  12:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   This library is distributed in the hope that it will be useful,
+  13:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   but WITHOUT ANY WARRANTY; without even the implied warranty of
+  14:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  15:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   Lesser General Public License for more details.
+  16:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  17:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   You should have received a copy of the GNU Lesser General
+  18:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   Public License along with this library; if not, write to the
+  19:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+  20:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   Boston, MA  02111-1307  USA
+  21:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  22:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   Modified 28 September 2010 by Mark Sproul
+  23:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  24:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   $Id: wiring.c 248 2007-02-03 15:36:30Z mellis $
+  25:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** */
+  26:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  27:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #include "wiring_private.h"
+  28:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #include "pins_arduino.h"
+  29:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  30:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** uint8_t analog_reference = DEFAULT;
+  31:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  32:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** void analogReference(uint8_t mode)
+  33:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** {
+ 118               	.LM0:
+ 119               	.LFBB1:
+ 120               	/* prologue: function */
+ 121               	/* frame size = 0 */
+  34:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// can't actually set the register here because the default setting
+  35:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// will connect AVCC and the AREF pin, which would cause a short if
+  36:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// there's something connected to AREF.
+  37:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	analog_reference = mode;
+ 123               	.LM1:
+ 124 0000 8093 0000 		sts analog_reference,r24
+ 125               	/* epilogue start */
+  38:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** }
+ 127               	.LM2:
+ 128 0004 0895      		ret
+ 130               	.Lscope1:
+ 132               		.stabd	78,0,0
+ 133               		.section	.text.analogRead,"ax",@progbits
+ 136               	.global	analogRead
+ 138               	analogRead:
+ 139               		.stabd	46,0,0
+  39:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  40:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** int analogRead(uint8_t pin)
+  41:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** {
+ 141               	.LM3:
+ 142               	.LFBB2:
+ 143               	/* prologue: function */
+ 144               	/* frame size = 0 */
+ 145 0000 382F      		mov r19,r24
+  42:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	uint8_t low, high;
+  43:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  44:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+  45:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	if (pin >= 54) pin -= 54; // allow for channel or pin numbers
+ 147               	.LM4:
+ 148 0002 8633      		cpi r24,lo8(54)
+ 149 0004 00F0      		brlo .L4
+ 150 0006 3653      		subi r19,lo8(-(-54))
+ 151               	.L4:
+  46:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #elif defined(__AVR_ATmega32U4__)
+  47:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	if (pin >= 18) pin -= 18; // allow for channel or pin numbers
+  48:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #elif defined(__AVR_ATmega1284__) || defined(__AVR_ATmega1284P__) || defined(__AVR_ATmega644__) || 
+  49:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	if (pin >= 24) pin -= 24; // allow for channel or pin numbers
+  50:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #elif defined(analogPinToChannel) && (defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || def
+  51:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	pin = analogPinToChannel(pin);
+  52:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #else
+  53:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	if (pin >= 14) pin -= 14; // allow for channel or pin numbers
+  54:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #endif
+  55:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	
+  56:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #if defined(__AVR_ATmega32U4__)
+  57:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	pin = analogPinToChannel(pin);
+  58:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	ADCSRB = (ADCSRB & ~(1 << MUX5)) | (((pin >> 3) & 0x01) << MUX5);
+  59:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #elif defined(ADCSRB) && defined(MUX5)
+  60:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// the MUX5 bit of ADCSRB selects whether we're reading from channels
+  61:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// 0 to 7 (MUX5 low) or 8 to 15 (MUX5 high).
+  62:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	ADCSRB = (ADCSRB & ~(1 << MUX5)) | (((pin >> 3) & 0x01) << MUX5);
+ 153               	.LM5:
+ 154 0008 2091 7B00 		lds r18,123
+ 155 000c 832F      		mov r24,r19
+ 156 000e 8695      		lsr r24
+ 157 0010 8695      		lsr r24
+ 158 0012 8695      		lsr r24
+ 159 0014 90E0      		ldi r25,lo8(0)
+ 160 0016 8170      		andi r24,lo8(1)
+ 161 0018 9070      		andi r25,hi8(1)
+ 162 001a 43E0      		ldi r20,3
+ 163 001c 880F      	1:	lsl r24
+ 164 001e 991F      		rol r25
+ 165 0020 4A95      		dec r20
+ 166 0022 01F4      		brne 1b
+ 167 0024 277F      		andi r18,lo8(-9)
+ 168 0026 282B      		or r18,r24
+ 169 0028 2093 7B00 		sts 123,r18
+  63:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #endif
+  64:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c ****   
+  65:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// set the analog reference (high two bits of ADMUX) and select the
+  66:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// channel (low 4 bits).  this also sets ADLAR (left-adjust result)
+  67:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// to 0 (the default).
+  68:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #if defined(ADMUX)
+  69:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	ADMUX = (analog_reference << 6) | (pin & 0x07);
+ 171               	.LM6:
+ 172 002c 3770      		andi r19,lo8(7)
+ 173 002e 8091 0000 		lds r24,analog_reference
+ 174 0032 8295      		swap r24
+ 175 0034 880F      		lsl r24
+ 176 0036 880F      		lsl r24
+ 177 0038 807C      		andi r24,lo8(-64)
+ 178 003a 832B      		or r24,r19
+ 179 003c 8093 7C00 		sts 124,r24
+  70:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #endif
+  71:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  72:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// without a delay, we seem to read from the wrong channel
+  73:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	//delay(1);
+  74:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  75:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #if defined(ADCSRA) && defined(ADCL)
+  76:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// start the conversion
+  77:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	sbi(ADCSRA, ADSC);
+ 181               	.LM7:
+ 182 0040 8091 7A00 		lds r24,122
+ 183 0044 8064      		ori r24,lo8(64)
+ 184 0046 8093 7A00 		sts 122,r24
+ 185               	.L5:
+  78:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  79:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// ADSC is cleared when the conversion finishes
+  80:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	while (bit_is_set(ADCSRA, ADSC));
+ 187               	.LM8:
+ 188 004a 8091 7A00 		lds r24,122
+ 189 004e 86FD      		sbrc r24,6
+ 190 0050 00C0      		rjmp .L5
+  81:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  82:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// we have to read ADCL first; doing so locks both ADCL
+  83:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// and ADCH until ADCH is read.  reading ADCL second would
+  84:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// cause the results of each conversion to be discarded,
+  85:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// as ADCL and ADCH would be locked when it completed.
+  86:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	low  = ADCL;
+ 192               	.LM9:
+ 193 0052 2091 7800 		lds r18,120
+  87:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	high = ADCH;
+ 195               	.LM10:
+ 196 0056 4091 7900 		lds r20,121
+ 197 005a 942F      		mov r25,r20
+ 198 005c 80E0      		ldi r24,lo8(0)
+ 199 005e 30E0      		ldi r19,lo8(0)
+ 200 0060 282B      		or r18,r24
+ 201 0062 392B      		or r19,r25
+  88:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #else
+  89:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// we dont have an ADC, return 0
+  90:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	low  = 0;
+  91:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	high = 0;
+  92:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** #endif
+  93:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  94:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// combine the two bytes
+  95:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	return (high << 8) | low;
+  96:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** }
+ 203               	.LM11:
+ 204 0064 C901      		movw r24,r18
+ 205               	/* epilogue start */
+ 206 0066 0895      		ret
+ 212               	.Lscope2:
+ 214               		.stabd	78,0,0
+ 215               		.section	.text.analogWrite,"ax",@progbits
+ 219               	.global	analogWrite
+ 221               	analogWrite:
+ 222               		.stabd	46,0,0
+  97:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+  98:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** // Right now, PWM output only works on the pins with
+  99:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** // hardware support.  These are defined in the appropriate
+ 100:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** // pins_*.c file.  For the rest of the pins, we default
+ 101:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** // to digital output.
+ 102:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** void analogWrite(uint8_t pin, int val)
+ 103:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** {
+ 224               	.LM12:
+ 225               	.LFBB3:
+ 226 0000 1F93      		push r17
+ 227 0002 CF93      		push r28
+ 228 0004 DF93      		push r29
+ 229               	/* prologue: function */
+ 230               	/* frame size = 0 */
+ 231 0006 182F      		mov r17,r24
+ 232 0008 EB01      		movw r28,r22
+ 104:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// We need to make sure the PWM output is enabled for those pins
+ 105:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// that support it, as we turn it off when digitally reading or
+ 106:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// writing with them.  Also, make sure the pin is in output mode
+ 107:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// for consistenty with Wiring, which doesn't require a pinMode
+ 108:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	// call for the analog output pins.
+ 109:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	pinMode(pin, OUTPUT);
+ 234               	.LM13:
+ 235 000a 61E0      		ldi r22,lo8(1)
+ 236 000c 0E94 0000 		call pinMode
+ 110:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	if (val == 0)
+ 238               	.LM14:
+ 239 0010 2097      		sbiw r28,0
+ 240 0012 01F4      		brne .+2
+ 241 0014 00C0      		rjmp .L32
+ 242               	.L9:
+ 111:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	{
+ 112:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 		digitalWrite(pin, LOW);
+ 113:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	}
+ 114:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	else if (val == 255)
+ 244               	.LM15:
+ 245 0016 CF3F      		cpi r28,255
+ 246 0018 D105      		cpc r29,__zero_reg__
+ 247 001a 01F4      		brne .+2
+ 248 001c 00C0      		rjmp .L29
+ 249               	.L11:
+ 250               	.LBB2:
+ 115:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	{
+ 116:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 		digitalWrite(pin, HIGH);
+ 117:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	}
+ 118:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	else
+ 119:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	{
+ 120:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 		switch(digitalPinToTimer(pin))
+ 252               	.LM16:
+ 253 001e E12F      		mov r30,r17
+ 254 0020 F0E0      		ldi r31,lo8(0)
+ 255 0022 E050      		subi r30,lo8(-(digital_pin_to_timer_PGM))
+ 256 0024 F040      		sbci r31,hi8(-(digital_pin_to_timer_PGM))
+ 257               	/* #APP */
+ 258               	 ;  120 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c" 1
+ 259 0026 E491      		lpm r30, Z
+ 260               		
+ 261               	 ;  0 "" 2
+ 262               	/* #NOAPP */
+ 263               	.LBE2:
+ 264 0028 8E2F      		mov r24,r30
+ 265 002a 90E0      		ldi r25,lo8(0)
+ 266 002c FC01      		movw r30,r24
+ 267 002e 3197      		sbiw r30,1
+ 268 0030 E131      		cpi r30,17
+ 269 0032 F105      		cpc r31,__zero_reg__
+ 270 0034 00F0      		brlo .+2
+ 271 0036 00C0      		rjmp .L12
+ 272 0038 E050      		subi r30,lo8(-(gs(.L28)))
+ 273 003a F040      		sbci r31,hi8(-(gs(.L28)))
+ 274 003c 0C94 0000 		jmp __tablejump2__
+ 275               		.data
+ 276               		.section .progmem.gcc_sw_table, "a", @progbits
+ 277               		.p2align 1
+ 278               	.L28:
+ 279               		.data
+ 280               		.section .progmem.gcc_sw_table, "a", @progbits
+ 281               		.p2align 1
+ 282 0000 0000      		.word gs(.L13)
+ 283 0002 0000      		.word gs(.L14)
+ 284 0004 0000      		.word gs(.L15)
+ 285 0006 0000      		.word gs(.L16)
+ 286 0008 0000      		.word gs(.L12)
+ 287 000a 0000      		.word gs(.L17)
+ 288 000c 0000      		.word gs(.L18)
+ 289 000e 0000      		.word gs(.L19)
+ 290 0010 0000      		.word gs(.L20)
+ 291 0012 0000      		.word gs(.L21)
+ 292 0014 0000      		.word gs(.L22)
+ 293 0016 0000      		.word gs(.L23)
+ 294 0018 0000      		.word gs(.L24)
+ 295 001a 0000      		.word gs(.L12)
+ 296 001c 0000      		.word gs(.L25)
+ 297 001e 0000      		.word gs(.L26)
+ 298 0020 0000      		.word gs(.L27)
+ 299               		.section	.text.analogWrite
+ 300               	.L13:
+ 121:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 		{
+ 122:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			// XXX fix needed for atmega8
+ 123:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR0) && defined(COM00) && !defined(__AVR_ATmega8__)
+ 124:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER0A:
+ 125:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 0
+ 126:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR0, COM00);
+ 127:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR0 = val; // set pwm duty
+ 128:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 129:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 130:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 131:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR0A) && defined(COM0A1)
+ 132:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER0A:
+ 133:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 0, channel A
+ 134:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR0A, COM0A1);
+ 302               	.LM17:
+ 303 0040 84B5      		in r24,68-32
+ 304 0042 8068      		ori r24,lo8(-128)
+ 305 0044 84BD      		out 68-32,r24
+ 135:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR0A = val; // set pwm duty
+ 307               	.LM18:
+ 308 0046 C7BD      		out 71-32,r28
+ 309 0048 00C0      		rjmp .L30
+ 310               	.L14:
+ 136:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 137:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 138:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 139:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR0A) && defined(COM0B1)
+ 140:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER0B:
+ 141:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 0, channel B
+ 142:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR0A, COM0B1);
+ 312               	.LM19:
+ 313 004a 84B5      		in r24,68-32
+ 314 004c 8062      		ori r24,lo8(32)
+ 315 004e 84BD      		out 68-32,r24
+ 143:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR0B = val; // set pwm duty
+ 317               	.LM20:
+ 318 0050 C8BD      		out 72-32,r28
+ 319 0052 00C0      		rjmp .L30
+ 320               	.L15:
+ 144:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 145:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 146:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 147:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR1A) && defined(COM1A1)
+ 148:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER1A:
+ 149:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 1, channel A
+ 150:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR1A, COM1A1);
+ 322               	.LM21:
+ 323 0054 8091 8000 		lds r24,128
+ 324 0058 8068      		ori r24,lo8(-128)
+ 325 005a 8093 8000 		sts 128,r24
+ 151:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR1A = val; // set pwm duty
+ 327               	.LM22:
+ 328 005e D093 8900 		sts (136)+1,r29
+ 329 0062 C093 8800 		sts 136,r28
+ 330 0066 00C0      		rjmp .L30
+ 331               	.L16:
+ 152:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 153:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 154:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 155:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR1A) && defined(COM1B1)
+ 156:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER1B:
+ 157:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 1, channel B
+ 158:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR1A, COM1B1);
+ 333               	.LM23:
+ 334 0068 8091 8000 		lds r24,128
+ 335 006c 8062      		ori r24,lo8(32)
+ 336 006e 8093 8000 		sts 128,r24
+ 159:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR1B = val; // set pwm duty
+ 338               	.LM24:
+ 339 0072 D093 8B00 		sts (138)+1,r29
+ 340 0076 C093 8A00 		sts 138,r28
+ 341 007a 00C0      		rjmp .L30
+ 342               	.L17:
+ 160:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 161:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 162:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 163:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR2) && defined(COM21)
+ 164:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER2:
+ 165:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 2
+ 166:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR2, COM21);
+ 167:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR2 = val; // set pwm duty
+ 168:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 169:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 170:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 171:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR2A) && defined(COM2A1)
+ 172:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER2A:
+ 173:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 2, channel A
+ 174:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR2A, COM2A1);
+ 344               	.LM25:
+ 345 007c 8091 B000 		lds r24,176
+ 346 0080 8068      		ori r24,lo8(-128)
+ 347 0082 8093 B000 		sts 176,r24
+ 175:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR2A = val; // set pwm duty
+ 349               	.LM26:
+ 350 0086 C093 B300 		sts 179,r28
+ 351 008a 00C0      		rjmp .L30
+ 352               	.L18:
+ 176:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 177:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 178:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 179:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR2A) && defined(COM2B1)
+ 180:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER2B:
+ 181:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 2, channel B
+ 182:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR2A, COM2B1);
+ 354               	.LM27:
+ 355 008c 8091 B000 		lds r24,176
+ 356 0090 8062      		ori r24,lo8(32)
+ 357 0092 8093 B000 		sts 176,r24
+ 183:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR2B = val; // set pwm duty
+ 359               	.LM28:
+ 360 0096 C093 B400 		sts 180,r28
+ 361 009a 00C0      		rjmp .L30
+ 362               	.L19:
+ 184:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 185:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 186:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 187:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR3A) && defined(COM3A1)
+ 188:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER3A:
+ 189:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 3, channel A
+ 190:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR3A, COM3A1);
+ 364               	.LM29:
+ 365 009c 8091 9000 		lds r24,144
+ 366 00a0 8068      		ori r24,lo8(-128)
+ 367 00a2 8093 9000 		sts 144,r24
+ 191:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR3A = val; // set pwm duty
+ 369               	.LM30:
+ 370 00a6 D093 9900 		sts (152)+1,r29
+ 371 00aa C093 9800 		sts 152,r28
+ 372 00ae 00C0      		rjmp .L30
+ 373               	.L20:
+ 192:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 193:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 194:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 195:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR3A) && defined(COM3B1)
+ 196:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER3B:
+ 197:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 3, channel B
+ 198:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR3A, COM3B1);
+ 375               	.LM31:
+ 376 00b0 8091 9000 		lds r24,144
+ 377 00b4 8062      		ori r24,lo8(32)
+ 378 00b6 8093 9000 		sts 144,r24
+ 199:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR3B = val; // set pwm duty
+ 380               	.LM32:
+ 381 00ba D093 9B00 		sts (154)+1,r29
+ 382 00be C093 9A00 		sts 154,r28
+ 383 00c2 00C0      		rjmp .L30
+ 384               	.L21:
+ 200:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 201:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 202:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 203:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR3A) && defined(COM3C1)
+ 204:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER3C:
+ 205:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 3, channel C
+ 206:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR3A, COM3C1);
+ 386               	.LM33:
+ 387 00c4 8091 9000 		lds r24,144
+ 388 00c8 8860      		ori r24,lo8(8)
+ 389 00ca 8093 9000 		sts 144,r24
+ 207:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR3C = val; // set pwm duty
+ 391               	.LM34:
+ 392 00ce D093 9D00 		sts (156)+1,r29
+ 393 00d2 C093 9C00 		sts 156,r28
+ 394 00d6 00C0      		rjmp .L30
+ 395               	.L22:
+ 208:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 209:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 210:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 211:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR4A)
+ 212:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER4A:
+ 213:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				//connect pwm to pin on timer 4, channel A
+ 214:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR4A, COM4A1);
+ 397               	.LM35:
+ 398 00d8 8091 A000 		lds r24,160
+ 399 00dc 8068      		ori r24,lo8(-128)
+ 400 00de 8093 A000 		sts 160,r24
+ 215:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				#if defined(COM4A0)		// only used on 32U4
+ 216:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				cbi(TCCR4A, COM4A0);
+ 402               	.LM36:
+ 403 00e2 8091 A000 		lds r24,160
+ 404 00e6 8F7B      		andi r24,lo8(-65)
+ 405 00e8 8093 A000 		sts 160,r24
+ 217:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				#endif
+ 218:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR4A = val;	// set pwm duty
+ 407               	.LM37:
+ 408 00ec D093 A900 		sts (168)+1,r29
+ 409 00f0 C093 A800 		sts 168,r28
+ 410 00f4 00C0      		rjmp .L30
+ 411               	.L23:
+ 219:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 220:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 221:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			
+ 222:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR4A) && defined(COM4B1)
+ 223:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER4B:
+ 224:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 4, channel B
+ 225:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR4A, COM4B1);
+ 413               	.LM38:
+ 414 00f6 8091 A000 		lds r24,160
+ 415 00fa 8062      		ori r24,lo8(32)
+ 416 00fc 8093 A000 		sts 160,r24
+ 226:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR4B = val; // set pwm duty
+ 418               	.LM39:
+ 419 0100 D093 AB00 		sts (170)+1,r29
+ 420 0104 C093 AA00 		sts 170,r28
+ 421 0108 00C0      		rjmp .L30
+ 422               	.L24:
+ 227:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 228:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 229:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 230:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR4A) && defined(COM4C1)
+ 231:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER4C:
+ 232:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 4, channel C
+ 233:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR4A, COM4C1);
+ 424               	.LM40:
+ 425 010a 8091 A000 		lds r24,160
+ 426 010e 8860      		ori r24,lo8(8)
+ 427 0110 8093 A000 		sts 160,r24
+ 234:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR4C = val; // set pwm duty
+ 429               	.LM41:
+ 430 0114 D093 AD00 		sts (172)+1,r29
+ 431 0118 C093 AC00 		sts 172,r28
+ 432 011c 00C0      		rjmp .L30
+ 433               	.L25:
+ 235:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 236:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 237:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				
+ 238:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR4C) && defined(COM4D1)
+ 239:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER4D:				
+ 240:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 4, channel D
+ 241:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR4C, COM4D1);
+ 242:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				#if defined(COM4D0)		// only used on 32U4
+ 243:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				cbi(TCCR4C, COM4D0);
+ 244:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				#endif
+ 245:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR4D = val;	// set pwm duty
+ 246:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 247:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 248:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 249:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 							
+ 250:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR5A) && defined(COM5A1)
+ 251:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER5A:
+ 252:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 5, channel A
+ 253:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR5A, COM5A1);
+ 435               	.LM42:
+ 436 011e 8091 2001 		lds r24,288
+ 437 0122 8068      		ori r24,lo8(-128)
+ 438 0124 8093 2001 		sts 288,r24
+ 254:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR5A = val; // set pwm duty
+ 440               	.LM43:
+ 441 0128 D093 2901 		sts (296)+1,r29
+ 442 012c C093 2801 		sts 296,r28
+ 443 0130 00C0      		rjmp .L30
+ 444               	.L26:
+ 255:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 256:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 257:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 258:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR5A) && defined(COM5B1)
+ 259:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER5B:
+ 260:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 5, channel B
+ 261:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR5A, COM5B1);
+ 446               	.LM44:
+ 447 0132 8091 2001 		lds r24,288
+ 448 0136 8062      		ori r24,lo8(32)
+ 449 0138 8093 2001 		sts 288,r24
+ 262:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR5B = val; // set pwm duty
+ 451               	.LM45:
+ 452 013c D093 2B01 		sts (298)+1,r29
+ 453 0140 C093 2A01 		sts 298,r28
+ 454 0144 00C0      		rjmp .L30
+ 455               	.L27:
+ 263:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 264:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 265:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 266:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#if defined(TCCR5A) && defined(COM5C1)
+ 267:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case TIMER5C:
+ 268:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				// connect pwm to pin on timer 5, channel C
+ 269:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				sbi(TCCR5A, COM5C1);
+ 457               	.LM46:
+ 458 0146 8091 2001 		lds r24,288
+ 459 014a 8860      		ori r24,lo8(8)
+ 460 014c 8093 2001 		sts 288,r24
+ 270:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				OCR5C = val; // set pwm duty
+ 462               	.LM47:
+ 463 0150 D093 2D01 		sts (300)+1,r29
+ 464 0154 C093 2C01 		sts 300,r28
+ 465 0158 00C0      		rjmp .L30
+ 466               	.L12:
+ 271:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				break;
+ 272:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			#endif
+ 273:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 
+ 274:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			case NOT_ON_TIMER:
+ 275:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 			default:
+ 276:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				if (val < 128) {
+ 468               	.LM48:
+ 469 015a C038      		cpi r28,128
+ 470 015c D105      		cpc r29,__zero_reg__
+ 471 015e 04F4      		brge .L29
+ 472               	.L32:
+ 277:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 					digitalWrite(pin, LOW);
+ 474               	.LM49:
+ 475 0160 812F      		mov r24,r17
+ 476 0162 60E0      		ldi r22,lo8(0)
+ 477 0164 00C0      		rjmp .L31
+ 478               	.L29:
+ 278:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				} else {
+ 279:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 					digitalWrite(pin, HIGH);
+ 480               	.LM50:
+ 481 0166 812F      		mov r24,r17
+ 482 0168 61E0      		ldi r22,lo8(1)
+ 483               	.L31:
+ 484 016a 0E94 0000 		call digitalWrite
+ 485               	.L30:
+ 486               	/* epilogue start */
+ 280:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 				}
+ 281:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 		}
+ 282:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** 	}
+ 283:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_analog.c **** }
+ 488               	.LM51:
+ 489 016e DF91      		pop r29
+ 490 0170 CF91      		pop r28
+ 491 0172 1F91      		pop r17
+ 492 0174 0895      		ret
+ 497               	.Lscope3:
+ 499               		.stabd	78,0,0
+ 500               	.global	analog_reference
+ 501               		.section	.data.analog_reference,"aw",@progbits
+ 504               	analog_reference:
+ 505 0000 01        		.byte	1
+ 530               		.text
+ 532               	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 wiring_analog.c
+     /tmp/ccXoGZv2.s:2      *ABS*:0000003f __SREG__
+     /tmp/ccXoGZv2.s:3      *ABS*:0000003e __SP_H__
+     /tmp/ccXoGZv2.s:4      *ABS*:0000003d __SP_L__
+     /tmp/ccXoGZv2.s:5      *ABS*:00000034 __CCP__
+     /tmp/ccXoGZv2.s:6      *ABS*:00000000 __tmp_reg__
+     /tmp/ccXoGZv2.s:7      *ABS*:00000001 __zero_reg__
+     /tmp/ccXoGZv2.s:115    .text.analogReference:00000000 analogReference
+     /tmp/ccXoGZv2.s:504    .data.analog_reference:00000000 analog_reference
+     /tmp/ccXoGZv2.s:138    .text.analogRead:00000000 analogRead
+     /tmp/ccXoGZv2.s:221    .text.analogWrite:00000000 analogWrite
+
+UNDEFINED SYMBOLS
+__do_copy_data
+__do_clear_bss
+pinMode
+digital_pin_to_timer_PGM
+__tablejump2__
+digitalWrite

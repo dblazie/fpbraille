@@ -1,0 +1,755 @@
+   1               		.file	"wiring.c"
+   2               	__SREG__ = 0x3f
+   3               	__SP_H__ = 0x3e
+   4               	__SP_L__ = 0x3d
+   5               	__CCP__  = 0x34
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.global __do_copy_data
+   9               		.global __do_clear_bss
+  12               		.text
+  13               	.Ltext0:
+ 110               		.section	.text.__vector_23,"ax",@progbits
+ 112               	.global	__vector_23
+ 114               	__vector_23:
+ 115               		.stabd	46,0,0
+   1:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** /*
+   2:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   wiring.c - Partial implementation of the Wiring API for the ATmega8.
+   3:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   Part of Arduino - http://www.arduino.cc/
+   4:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+   5:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   Copyright (c) 2005-2006 David A. Mellis
+   6:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+   7:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   This library is free software; you can redistribute it and/or
+   8:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   modify it under the terms of the GNU Lesser General Public
+   9:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   License as published by the Free Software Foundation; either
+  10:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   version 2.1 of the License, or (at your option) any later version.
+  11:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  12:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   This library is distributed in the hope that it will be useful,
+  13:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   but WITHOUT ANY WARRANTY; without even the implied warranty of
+  14:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  15:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   Lesser General Public License for more details.
+  16:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  17:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   You should have received a copy of the GNU Lesser General
+  18:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   Public License along with this library; if not, write to the
+  19:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+  20:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   Boston, MA  02111-1307  USA
+  21:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  22:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   $Id$
+  23:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** */
+  24:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  25:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #include "wiring_private.h"
+  26:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  27:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** // the prescaler is set so that timer0 ticks every 64 clock cycles, and the
+  28:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** // the overflow handler is called every 256 ticks.
+  29:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #define MICROSECONDS_PER_TIMER0_OVERFLOW (clockCyclesToMicroseconds(64 * 256))
+  30:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  31:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** // the whole number of milliseconds per timer0 overflow
+  32:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #define MILLIS_INC (MICROSECONDS_PER_TIMER0_OVERFLOW / 1000)
+  33:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  34:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** // the fractional number of milliseconds per timer0 overflow. we shift right
+  35:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** // by three to fit these numbers into a byte. (for the clock speeds we care
+  36:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** // about - 8 and 16 MHz - this doesn't lose precision.)
+  37:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #define FRACT_INC ((MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3)
+  38:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #define FRACT_MAX (1000 >> 3)
+  39:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  40:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** volatile unsigned long timer0_overflow_count = 0;
+  41:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** volatile unsigned long timer0_millis = 0;
+  42:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** static unsigned char timer0_fract = 0;
+  43:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  44:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
+  45:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** ISR(TIM0_OVF_vect)
+  46:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #else
+  47:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** ISR(TIMER0_OVF_vect)
+  48:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+  49:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** {
+ 117               	.LM0:
+ 118               	.LFBB1:
+ 119 0000 1F92      		push __zero_reg__
+ 120 0002 0F92      		push r0
+ 121 0004 0FB6      		in r0,__SREG__
+ 122 0006 0F92      		push r0
+ 123 0008 1124      		clr __zero_reg__
+ 124 000a 2F93      		push r18
+ 125 000c 3F93      		push r19
+ 126 000e 8F93      		push r24
+ 127 0010 9F93      		push r25
+ 128 0012 AF93      		push r26
+ 129 0014 BF93      		push r27
+ 130               	/* prologue: Signal */
+ 131               	/* frame size = 0 */
+  50:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// copy these to local variables so they can be stored in registers
+  51:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// (volatile variables must be read from memory on every access)
+  52:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	unsigned long m = timer0_millis;
+ 133               	.LM1:
+ 134 0016 8091 0000 		lds r24,timer0_millis
+ 135 001a 9091 0000 		lds r25,(timer0_millis)+1
+ 136 001e A091 0000 		lds r26,(timer0_millis)+2
+ 137 0022 B091 0000 		lds r27,(timer0_millis)+3
+  53:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	unsigned char f = timer0_fract;
+ 139               	.LM2:
+ 140 0026 3091 0000 		lds r19,timer0_fract
+  54:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  55:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	m += MILLIS_INC;
+ 142               	.LM3:
+ 143 002a 0196      		adiw r24,1
+ 144 002c A11D      		adc r26,__zero_reg__
+ 145 002e B11D      		adc r27,__zero_reg__
+  56:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	f += FRACT_INC;
+ 147               	.LM4:
+ 148 0030 232F      		mov r18,r19
+ 149 0032 2D5F      		subi r18,lo8(-(3))
+  57:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	if (f >= FRACT_MAX) {
+ 151               	.LM5:
+ 152 0034 2D37      		cpi r18,lo8(125)
+ 153 0036 00F0      		brlo .L2
+  58:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		f -= FRACT_MAX;
+ 155               	.LM6:
+ 156 0038 2D57      		subi r18,lo8(-(-125))
+  59:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		m += 1;
+ 158               	.LM7:
+ 159 003a 0196      		adiw r24,1
+ 160 003c A11D      		adc r26,__zero_reg__
+ 161 003e B11D      		adc r27,__zero_reg__
+ 162               	.L2:
+  60:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	}
+  61:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  62:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	timer0_fract = f;
+ 164               	.LM8:
+ 165 0040 2093 0000 		sts timer0_fract,r18
+  63:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	timer0_millis = m;
+ 167               	.LM9:
+ 168 0044 8093 0000 		sts timer0_millis,r24
+ 169 0048 9093 0000 		sts (timer0_millis)+1,r25
+ 170 004c A093 0000 		sts (timer0_millis)+2,r26
+ 171 0050 B093 0000 		sts (timer0_millis)+3,r27
+  64:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	timer0_overflow_count++;
+ 173               	.LM10:
+ 174 0054 8091 0000 		lds r24,timer0_overflow_count
+ 175 0058 9091 0000 		lds r25,(timer0_overflow_count)+1
+ 176 005c A091 0000 		lds r26,(timer0_overflow_count)+2
+ 177 0060 B091 0000 		lds r27,(timer0_overflow_count)+3
+ 178 0064 0196      		adiw r24,1
+ 179 0066 A11D      		adc r26,__zero_reg__
+ 180 0068 B11D      		adc r27,__zero_reg__
+ 181 006a 8093 0000 		sts timer0_overflow_count,r24
+ 182 006e 9093 0000 		sts (timer0_overflow_count)+1,r25
+ 183 0072 A093 0000 		sts (timer0_overflow_count)+2,r26
+ 184 0076 B093 0000 		sts (timer0_overflow_count)+3,r27
+ 185               	/* epilogue start */
+  65:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** }
+ 187               	.LM11:
+ 188 007a BF91      		pop r27
+ 189 007c AF91      		pop r26
+ 190 007e 9F91      		pop r25
+ 191 0080 8F91      		pop r24
+ 192 0082 3F91      		pop r19
+ 193 0084 2F91      		pop r18
+ 194 0086 0F90      		pop r0
+ 195 0088 0FBE      		out __SREG__,r0
+ 196 008a 0F90      		pop r0
+ 197 008c 1F90      		pop __zero_reg__
+ 198 008e 1895      		reti
+ 204               	.Lscope1:
+ 206               		.stabd	78,0,0
+ 207               		.section	.text.millis,"ax",@progbits
+ 209               	.global	millis
+ 211               	millis:
+ 212               		.stabd	46,0,0
+  66:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  67:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** unsigned long millis()
+  68:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** {
+ 214               	.LM12:
+ 215               	.LFBB2:
+ 216               	/* prologue: function */
+ 217               	/* frame size = 0 */
+  69:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	unsigned long m;
+  70:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	uint8_t oldSREG = SREG;
+ 219               	.LM13:
+ 220 0000 8FB7      		in r24,__SREG__
+  71:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  72:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// disable interrupts while we read timer0_millis or we might get an
+  73:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// inconsistent value (e.g. in the middle of a write to timer0_millis)
+  74:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	cli();
+ 222               	.LM14:
+ 223               	/* #APP */
+ 224               	 ;  74 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c" 1
+ 225 0002 F894      		cli
+ 226               	 ;  0 "" 2
+  75:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	m = timer0_millis;
+ 228               	.LM15:
+ 229               	/* #NOAPP */
+ 230 0004 2091 0000 		lds r18,timer0_millis
+ 231 0008 3091 0000 		lds r19,(timer0_millis)+1
+ 232 000c 4091 0000 		lds r20,(timer0_millis)+2
+ 233 0010 5091 0000 		lds r21,(timer0_millis)+3
+  76:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	SREG = oldSREG;
+ 235               	.LM16:
+ 236 0014 8FBF      		out __SREG__,r24
+  77:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  78:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	return m;
+  79:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** }
+ 238               	.LM17:
+ 239 0016 B901      		movw r22,r18
+ 240 0018 CA01      		movw r24,r20
+ 241               	/* epilogue start */
+ 242 001a 0895      		ret
+ 248               	.Lscope2:
+ 250               		.stabd	78,0,0
+ 251               		.section	.text.micros,"ax",@progbits
+ 253               	.global	micros
+ 255               	micros:
+ 256               		.stabd	46,0,0
+  80:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  81:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** unsigned long micros() {
+ 258               	.LM18:
+ 259               	.LFBB3:
+ 260               	/* prologue: function */
+ 261               	/* frame size = 0 */
+  82:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	unsigned long m;
+  83:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	uint8_t oldSREG = SREG, t;
+ 263               	.LM19:
+ 264 0000 9FB7      		in r25,__SREG__
+  84:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	
+  85:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	cli();
+ 266               	.LM20:
+ 267               	/* #APP */
+ 268               	 ;  85 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c" 1
+ 269 0002 F894      		cli
+ 270               	 ;  0 "" 2
+  86:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	m = timer0_overflow_count;
+ 272               	.LM21:
+ 273               	/* #NOAPP */
+ 274 0004 2091 0000 		lds r18,timer0_overflow_count
+ 275 0008 3091 0000 		lds r19,(timer0_overflow_count)+1
+ 276 000c 4091 0000 		lds r20,(timer0_overflow_count)+2
+ 277 0010 5091 0000 		lds r21,(timer0_overflow_count)+3
+  87:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(TCNT0)
+  88:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	t = TCNT0;
+ 279               	.LM22:
+ 280 0014 86B5      		in r24,70-32
+  89:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #elif defined(TCNT0L)
+  90:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	t = TCNT0L;
+  91:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #else
+  92:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	#error TIMER 0 not defined
+  93:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+  94:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+  95:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****   
+  96:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #ifdef TIFR0
+  97:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	if ((TIFR0 & _BV(TOV0)) && (t < 255))
+ 282               	.LM23:
+ 283 0016 A89B      		sbis 53-32,0
+ 284 0018 00C0      		rjmp .L7
+ 285 001a 8F3F      		cpi r24,lo8(-1)
+ 286 001c 01F0      		breq .L7
+  98:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		m++;
+ 288               	.LM24:
+ 289 001e 2F5F      		subi r18,lo8(-(1))
+ 290 0020 3F4F      		sbci r19,hi8(-(1))
+ 291 0022 4F4F      		sbci r20,hlo8(-(1))
+ 292 0024 5F4F      		sbci r21,hhi8(-(1))
+ 293               	.L7:
+  99:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #else
+ 100:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	if ((TIFR & _BV(TOV0)) && (t < 255))
+ 101:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		m++;
+ 102:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 103:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 104:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	SREG = oldSREG;
+ 295               	.LM25:
+ 296 0026 9FBF      		out __SREG__,r25
+ 297 0028 542F      		mov r21,r20
+ 298 002a 432F      		mov r20,r19
+ 299 002c 322F      		mov r19,r18
+ 300 002e 2227      		clr r18
+ 301 0030 280F      		add r18,r24
+ 302 0032 311D      		adc r19,__zero_reg__
+ 303 0034 411D      		adc r20,__zero_reg__
+ 304 0036 511D      		adc r21,__zero_reg__
+ 305 0038 82E0      		ldi r24,2
+ 306 003a 220F      	1:	lsl r18
+ 307 003c 331F      		rol r19
+ 308 003e 441F      		rol r20
+ 309 0040 551F      		rol r21
+ 310 0042 8A95      		dec r24
+ 311 0044 01F4      		brne 1b
+ 105:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	
+ 106:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	return ((m << 8) + t) * (64 / clockCyclesPerMicrosecond());
+ 107:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** }
+ 313               	.LM26:
+ 314 0046 B901      		movw r22,r18
+ 315 0048 CA01      		movw r24,r20
+ 316               	/* epilogue start */
+ 317 004a 0895      		ret
+ 324               	.Lscope3:
+ 326               		.stabd	78,0,0
+ 327               		.section	.text.delay,"ax",@progbits
+ 330               	.global	delay
+ 332               	delay:
+ 333               		.stabd	46,0,0
+ 108:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 109:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** void delay(unsigned long ms)
+ 110:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** {
+ 335               	.LM27:
+ 336               	.LFBB4:
+ 337 0000 EF92      		push r14
+ 338 0002 FF92      		push r15
+ 339 0004 0F93      		push r16
+ 340 0006 1F93      		push r17
+ 341 0008 CF93      		push r28
+ 342 000a DF93      		push r29
+ 343               	/* prologue: function */
+ 344               	/* frame size = 0 */
+ 345 000c 7B01      		movw r14,r22
+ 346 000e 8C01      		movw r16,r24
+ 111:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	uint16_t start = (uint16_t)micros();
+ 348               	.LM28:
+ 349 0010 0E94 0000 		call micros
+ 350 0014 EB01      		movw r28,r22
+ 351 0016 00C0      		rjmp .L10
+ 352               	.L13:
+ 112:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 113:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	while (ms > 0) {
+ 114:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		if (((uint16_t)micros() - start) >= 1000) {
+ 354               	.LM29:
+ 355 0018 0E94 0000 		call micros
+ 356 001c 6C1B      		sub r22,r28
+ 357 001e 7D0B      		sbc r23,r29
+ 358 0020 685E      		subi r22,lo8(1000)
+ 359 0022 7340      		sbci r23,hi8(1000)
+ 360 0024 00F0      		brlo .L13
+ 115:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 			ms--;
+ 362               	.LM30:
+ 363 0026 0894      		sec
+ 364 0028 E108      		sbc r14,__zero_reg__
+ 365 002a F108      		sbc r15,__zero_reg__
+ 366 002c 0109      		sbc r16,__zero_reg__
+ 367 002e 1109      		sbc r17,__zero_reg__
+ 116:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 			start += 1000;
+ 369               	.LM31:
+ 370 0030 C851      		subi r28,lo8(-(1000))
+ 371 0032 DC4F      		sbci r29,hi8(-(1000))
+ 372               	.L10:
+ 374               	.LM32:
+ 375 0034 E114      		cp r14,__zero_reg__
+ 376 0036 F104      		cpc r15,__zero_reg__
+ 377 0038 0105      		cpc r16,__zero_reg__
+ 378 003a 1105      		cpc r17,__zero_reg__
+ 379 003c 01F4      		brne .L13
+ 380               	/* epilogue start */
+ 117:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		}
+ 118:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	}
+ 119:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** }
+ 382               	.LM33:
+ 383 003e CDB7      		in r28,__SP_L__
+ 384 0040 DEB7      		in r29,__SP_H__
+ 385 0042 E6E0      		ldi r30, lo8(6)
+ 386 0044 0C94 0000 		jmp __epilogue_restores__ + ((18 - 6) * 2)
+ 391               	.Lscope4:
+ 393               		.stabd	78,0,0
+ 394               		.section	.text.delayMicroseconds,"ax",@progbits
+ 397               	.global	delayMicroseconds
+ 399               	delayMicroseconds:
+ 400               		.stabd	46,0,0
+ 120:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 121:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** /* Delay for the given number of microseconds.  Assumes a 8 or 16 MHz clock. */
+ 122:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** void delayMicroseconds(unsigned int us)
+ 123:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** {
+ 402               	.LM34:
+ 403               	.LFBB5:
+ 404               	/* prologue: function */
+ 405               	/* frame size = 0 */
+ 124:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// calling avrlib's delay_us() function with low values (e.g. 1 or
+ 125:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// 2 microseconds) gives delays longer than desired.
+ 126:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	//delay_us(us);
+ 127:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if F_CPU >= 20000000L
+ 128:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// for the 20 MHz clock on rare Arduino boards
+ 129:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 130:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// for a one-microsecond delay, simply wait 2 cycle and return. The overhead
+ 131:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// of the function call yields a delay of exactly a one microsecond.
+ 132:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	__asm__ __volatile__ (
+ 133:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		"nop" "\n\t"
+ 134:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		"nop"); //just waiting 2 cycle
+ 135:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	if (--us == 0)
+ 136:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		return;
+ 137:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 138:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// the following loop takes a 1/5 of a microsecond (4 cycles)
+ 139:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// per iteration, so execute it five times for each microsecond of
+ 140:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// delay requested.
+ 141:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	us = (us<<2) + us; // x5 us
+ 142:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 143:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// account for the time taken in the preceeding commands.
+ 144:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	us -= 2;
+ 145:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 146:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #elif F_CPU >= 16000000L
+ 147:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// for the 16 MHz clock on most Arduino boards
+ 148:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 149:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// for a one-microsecond delay, simply return.  the overhead
+ 150:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// of the function call yields a delay of approximately 1 1/8 us.
+ 151:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	if (--us == 0)
+ 407               	.LM35:
+ 408 0000 0197      		sbiw r24,1
+ 409 0002 01F0      		breq .L17
+ 152:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		return;
+ 153:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 154:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// the following loop takes a quarter of a microsecond (4 cycles)
+ 155:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// per iteration, so execute it four times for each microsecond of
+ 156:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// delay requested.
+ 157:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	us <<= 2;
+ 411               	.LM36:
+ 412 0004 880F      		lsl r24
+ 413 0006 991F      		rol r25
+ 414 0008 880F      		lsl r24
+ 415 000a 991F      		rol r25
+ 158:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 159:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// account for the time taken in the preceeding commands.
+ 160:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	us -= 2;
+ 417               	.LM37:
+ 418 000c 0297      		sbiw r24,2
+ 161:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #else
+ 162:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// for the 8 MHz internal clock on the ATmega168
+ 163:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 164:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// for a one- or two-microsecond delay, simply return.  the overhead of
+ 165:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// the function calls takes more than two microseconds.  can't just
+ 166:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// subtract two, since us is unsigned; we'd overflow.
+ 167:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	if (--us == 0)
+ 168:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		return;
+ 169:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	if (--us == 0)
+ 170:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		return;
+ 171:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 172:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// the following loop takes half of a microsecond (4 cycles)
+ 173:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// per iteration, so execute it twice for each microsecond of
+ 174:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// delay requested.
+ 175:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	us <<= 1;
+ 176:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c ****     
+ 177:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// partially compensate for the time taken by the preceeding commands.
+ 178:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// we can't subtract any more than this or we'd overflow w/ small delays.
+ 179:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	us--;
+ 180:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 181:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 182:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// busy wait
+ 183:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	__asm__ __volatile__ (
+ 420               	.LM38:
+ 421               	/* #APP */
+ 422               	 ;  183 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c" 1
+ 423 000e 0197      		1: sbiw r24,1
+ 424 0010 01F4      		brne 1b
+ 425               	 ;  0 "" 2
+ 426               	/* #NOAPP */
+ 427               	.L17:
+ 428 0012 0895      		ret
+ 430               	.Lscope5:
+ 432               		.stabd	78,0,0
+ 433               		.section	.text.init,"ax",@progbits
+ 435               	.global	init
+ 437               	init:
+ 438               		.stabd	46,0,0
+ 184:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		"1: sbiw %0,1" "\n\t" // 2 cycles
+ 185:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 		"brne 1b" : "=w" (us) : "0" (us) // 2 cycles
+ 186:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	);
+ 187:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** }
+ 188:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 189:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** void init()
+ 190:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** {
+ 440               	.LM39:
+ 441               	.LFBB6:
+ 442               	/* prologue: function */
+ 443               	/* frame size = 0 */
+ 191:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// this needs to be called before setup() or some functions won't
+ 192:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// work there
+ 193:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sei();
+ 445               	.LM40:
+ 446               	/* #APP */
+ 447               	 ;  193 "../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c" 1
+ 448 0000 7894      		sei
+ 449               	 ;  0 "" 2
+ 194:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	
+ 195:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// on the ATmega168, timer 0 is also used for fast hardware pwm
+ 196:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// (using phase-correct PWM would mean that timer 0 overflowed half as often
+ 197:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// resulting in different millis() behavior on the ATmega8 and ATmega168)
+ 198:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(TCCR0A) && defined(WGM01)
+ 199:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR0A, WGM01);
+ 451               	.LM41:
+ 452               	/* #NOAPP */
+ 453 0002 84B5      		in r24,68-32
+ 454 0004 8260      		ori r24,lo8(2)
+ 455 0006 84BD      		out 68-32,r24
+ 200:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR0A, WGM00);
+ 457               	.LM42:
+ 458 0008 84B5      		in r24,68-32
+ 459 000a 8160      		ori r24,lo8(1)
+ 460 000c 84BD      		out 68-32,r24
+ 201:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif  
+ 202:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 203:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// set timer 0 prescale factor to 64
+ 204:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(__AVR_ATmega128__)
+ 205:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// CPU specific: different values for the ATmega128
+ 206:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR0, CS02);
+ 207:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #elif defined(TCCR0) && defined(CS01) && defined(CS00)
+ 208:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// this combination is for the standard atmega8
+ 209:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR0, CS01);
+ 210:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR0, CS00);
+ 211:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #elif defined(TCCR0B) && defined(CS01) && defined(CS00)
+ 212:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// this combination is for the standard 168/328/1280/2560
+ 213:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR0B, CS01);
+ 462               	.LM43:
+ 463 000e 85B5      		in r24,69-32
+ 464 0010 8260      		ori r24,lo8(2)
+ 465 0012 85BD      		out 69-32,r24
+ 214:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR0B, CS00);
+ 467               	.LM44:
+ 468 0014 85B5      		in r24,69-32
+ 469 0016 8160      		ori r24,lo8(1)
+ 470 0018 85BD      		out 69-32,r24
+ 215:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #elif defined(TCCR0A) && defined(CS01) && defined(CS00)
+ 216:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// this combination is for the __AVR_ATmega645__ series
+ 217:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR0A, CS01);
+ 218:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR0A, CS00);
+ 219:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #else
+ 220:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	#error Timer 0 prescale factor 64 not set correctly
+ 221:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 222:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 223:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// enable timer 0 overflow interrupt
+ 224:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(TIMSK) && defined(TOIE0)
+ 225:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TIMSK, TOIE0);
+ 226:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #elif defined(TIMSK0) && defined(TOIE0)
+ 227:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TIMSK0, TOIE0);
+ 472               	.LM45:
+ 473 001a EEE6      		ldi r30,lo8(110)
+ 474 001c F0E0      		ldi r31,hi8(110)
+ 475 001e 8081      		ld r24,Z
+ 476 0020 8160      		ori r24,lo8(1)
+ 477 0022 8083      		st Z,r24
+ 228:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #else
+ 229:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	#error	Timer 0 overflow interrupt not set correctly
+ 230:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 231:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 232:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// timers 1 and 2 are used for phase-correct hardware pwm
+ 233:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// this is better for motors as it ensures an even waveform
+ 234:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// note, however, that fast pwm mode can achieve a frequency of up
+ 235:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// 8 MHz (with a 16 MHz clock) at 50% duty cycle
+ 236:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 237:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(TCCR1B) && defined(CS11) && defined(CS10)
+ 238:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	TCCR1B = 0;
+ 479               	.LM46:
+ 480 0024 E1E8      		ldi r30,lo8(129)
+ 481 0026 F0E0      		ldi r31,hi8(129)
+ 482 0028 1082      		st Z,__zero_reg__
+ 239:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 240:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// set timer 1 prescale factor to 64
+ 241:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR1B, CS11);
+ 484               	.LM47:
+ 485 002a 8081      		ld r24,Z
+ 486 002c 8260      		ori r24,lo8(2)
+ 487 002e 8083      		st Z,r24
+ 242:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if F_CPU >= 8000000L
+ 243:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR1B, CS10);
+ 489               	.LM48:
+ 490 0030 8081      		ld r24,Z
+ 491 0032 8160      		ori r24,lo8(1)
+ 492 0034 8083      		st Z,r24
+ 244:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 245:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #elif defined(TCCR1) && defined(CS11) && defined(CS10)
+ 246:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR1, CS11);
+ 247:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if F_CPU >= 8000000L
+ 248:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR1, CS10);
+ 249:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 250:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 251:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// put timer 1 in 8-bit phase correct pwm mode
+ 252:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(TCCR1A) && defined(WGM10)
+ 253:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR1A, WGM10);
+ 494               	.LM49:
+ 495 0036 E0E8      		ldi r30,lo8(128)
+ 496 0038 F0E0      		ldi r31,hi8(128)
+ 497 003a 8081      		ld r24,Z
+ 498 003c 8160      		ori r24,lo8(1)
+ 499 003e 8083      		st Z,r24
+ 254:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #elif defined(TCCR1)
+ 255:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	#warning this needs to be finished
+ 256:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 257:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 258:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// set timer 2 prescale factor to 64
+ 259:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(TCCR2) && defined(CS22)
+ 260:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR2, CS22);
+ 261:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #elif defined(TCCR2B) && defined(CS22)
+ 262:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR2B, CS22);
+ 501               	.LM50:
+ 502 0040 E1EB      		ldi r30,lo8(177)
+ 503 0042 F0E0      		ldi r31,hi8(177)
+ 504 0044 8081      		ld r24,Z
+ 505 0046 8460      		ori r24,lo8(4)
+ 506 0048 8083      		st Z,r24
+ 263:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #else
+ 264:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	#warning Timer 2 not finished (may not be present on this CPU)
+ 265:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 266:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 267:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// configure timer 2 for phase correct pwm (8-bit)
+ 268:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(TCCR2) && defined(WGM20)
+ 269:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR2, WGM20);
+ 270:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #elif defined(TCCR2A) && defined(WGM20)
+ 271:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR2A, WGM20);
+ 508               	.LM51:
+ 509 004a E0EB      		ldi r30,lo8(176)
+ 510 004c F0E0      		ldi r31,hi8(176)
+ 511 004e 8081      		ld r24,Z
+ 512 0050 8160      		ori r24,lo8(1)
+ 513 0052 8083      		st Z,r24
+ 272:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #else
+ 273:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	#warning Timer 2 not finished (may not be present on this CPU)
+ 274:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 275:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 276:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(TCCR3B) && defined(CS31) && defined(WGM30)
+ 277:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR3B, CS31);		// set timer 3 prescale factor to 64
+ 515               	.LM52:
+ 516 0054 E1E9      		ldi r30,lo8(145)
+ 517 0056 F0E0      		ldi r31,hi8(145)
+ 518 0058 8081      		ld r24,Z
+ 519 005a 8260      		ori r24,lo8(2)
+ 520 005c 8083      		st Z,r24
+ 278:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR3B, CS30);
+ 522               	.LM53:
+ 523 005e 8081      		ld r24,Z
+ 524 0060 8160      		ori r24,lo8(1)
+ 525 0062 8083      		st Z,r24
+ 279:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR3A, WGM30);		// put timer 3 in 8-bit phase correct pwm mode
+ 527               	.LM54:
+ 528 0064 E0E9      		ldi r30,lo8(144)
+ 529 0066 F0E0      		ldi r31,hi8(144)
+ 530 0068 8081      		ld r24,Z
+ 531 006a 8160      		ori r24,lo8(1)
+ 532 006c 8083      		st Z,r24
+ 280:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 281:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 282:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(TCCR4A) && defined(TCCR4B) && defined(TCCR4D) /* beginning of timer4 block for 32U4 and
+ 283:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR4B, CS42);		// set timer4 prescale factor to 64
+ 284:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR4B, CS41);
+ 285:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR4B, CS40);
+ 286:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR4D, WGM40);		// put timer 4 in phase- and frequency-correct PWM mode	
+ 287:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR4A, PWM4A);		// enable PWM mode for comparator OCR4A
+ 288:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR4C, PWM4D);		// enable PWM mode for comparator OCR4D
+ 289:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #else /* beginning of timer4 block for ATMEGA1280 and ATMEGA2560 */
+ 290:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(TCCR4B) && defined(CS41) && defined(WGM40)
+ 291:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR4B, CS41);		// set timer 4 prescale factor to 64
+ 534               	.LM55:
+ 535 006e E1EA      		ldi r30,lo8(161)
+ 536 0070 F0E0      		ldi r31,hi8(161)
+ 537 0072 8081      		ld r24,Z
+ 538 0074 8260      		ori r24,lo8(2)
+ 539 0076 8083      		st Z,r24
+ 292:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR4B, CS40);
+ 541               	.LM56:
+ 542 0078 8081      		ld r24,Z
+ 543 007a 8160      		ori r24,lo8(1)
+ 544 007c 8083      		st Z,r24
+ 293:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR4A, WGM40);		// put timer 4 in 8-bit phase correct pwm mode
+ 546               	.LM57:
+ 547 007e E0EA      		ldi r30,lo8(160)
+ 548 0080 F0E0      		ldi r31,hi8(160)
+ 549 0082 8081      		ld r24,Z
+ 550 0084 8160      		ori r24,lo8(1)
+ 551 0086 8083      		st Z,r24
+ 294:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 295:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif /* end timer4 block for ATMEGA1280/2560 and similar */	
+ 296:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 297:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(TCCR5B) && defined(CS51) && defined(WGM50)
+ 298:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR5B, CS51);		// set timer 5 prescale factor to 64
+ 553               	.LM58:
+ 554 0088 E1E2      		ldi r30,lo8(289)
+ 555 008a F1E0      		ldi r31,hi8(289)
+ 556 008c 8081      		ld r24,Z
+ 557 008e 8260      		ori r24,lo8(2)
+ 558 0090 8083      		st Z,r24
+ 299:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR5B, CS50);
+ 560               	.LM59:
+ 561 0092 8081      		ld r24,Z
+ 562 0094 8160      		ori r24,lo8(1)
+ 563 0096 8083      		st Z,r24
+ 300:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(TCCR5A, WGM50);		// put timer 5 in 8-bit phase correct pwm mode
+ 565               	.LM60:
+ 566 0098 E0E2      		ldi r30,lo8(288)
+ 567 009a F1E0      		ldi r31,hi8(288)
+ 568 009c 8081      		ld r24,Z
+ 569 009e 8160      		ori r24,lo8(1)
+ 570 00a0 8083      		st Z,r24
+ 301:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 302:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 303:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(ADCSRA)
+ 304:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// set a2d prescale factor to 128
+ 305:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// 16 MHz / 128 = 125 KHz, inside the desired 50-200 KHz range.
+ 306:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// XXX: this will not work properly for other clock speeds, and
+ 307:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// this code should use F_CPU to determine the prescale factor.
+ 308:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(ADCSRA, ADPS2);
+ 572               	.LM61:
+ 573 00a2 EAE7      		ldi r30,lo8(122)
+ 574 00a4 F0E0      		ldi r31,hi8(122)
+ 575 00a6 8081      		ld r24,Z
+ 576 00a8 8460      		ori r24,lo8(4)
+ 577 00aa 8083      		st Z,r24
+ 309:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(ADCSRA, ADPS1);
+ 579               	.LM62:
+ 580 00ac 8081      		ld r24,Z
+ 581 00ae 8260      		ori r24,lo8(2)
+ 582 00b0 8083      		st Z,r24
+ 310:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(ADCSRA, ADPS0);
+ 584               	.LM63:
+ 585 00b2 8081      		ld r24,Z
+ 586 00b4 8160      		ori r24,lo8(1)
+ 587 00b6 8083      		st Z,r24
+ 311:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 312:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// enable a2d conversions
+ 313:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	sbi(ADCSRA, ADEN);
+ 589               	.LM64:
+ 590 00b8 8081      		ld r24,Z
+ 591 00ba 8068      		ori r24,lo8(-128)
+ 592 00bc 8083      		st Z,r24
+ 314:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 315:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 
+ 316:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// the bootloader connects pins 0 and 1 to the USART; disconnect them
+ 317:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// here so they can be used as normal digital i/o; they will be
+ 318:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	// reconnected in Serial.begin()
+ 319:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #if defined(UCSRB)
+ 320:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	UCSRB = 0;
+ 321:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #elif defined(UCSR0B)
+ 322:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** 	UCSR0B = 0;
+ 594               	.LM65:
+ 595 00be 1092 C100 		sts 193,__zero_reg__
+ 596               	/* epilogue start */
+ 323:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** #endif
+ 324:../arduino-1.0.5/hardware/arduino/cores/arduino/wiring.c **** }
+ 598               	.LM66:
+ 599 00c2 0895      		ret
+ 601               	.Lscope6:
+ 603               		.stabd	78,0,0
+ 604               	.global	timer0_overflow_count
+ 605               		.section	.bss.timer0_overflow_count,"aw",@nobits
+ 608               	timer0_overflow_count:
+ 609 0000 0000 0000 		.skip 4,0
+ 610               	.global	timer0_millis
+ 611               		.section	.bss.timer0_millis,"aw",@nobits
+ 614               	timer0_millis:
+ 615 0000 0000 0000 		.skip 4,0
+ 616               		.section	.bss.timer0_fract,"aw",@nobits
+ 619               	timer0_fract:
+ 620 0000 00        		.skip 1,0
+ 647               		.text
+ 649               	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 wiring.c
+     /tmp/ccbfaKBa.s:2      *ABS*:0000003f __SREG__
+     /tmp/ccbfaKBa.s:3      *ABS*:0000003e __SP_H__
+     /tmp/ccbfaKBa.s:4      *ABS*:0000003d __SP_L__
+     /tmp/ccbfaKBa.s:5      *ABS*:00000034 __CCP__
+     /tmp/ccbfaKBa.s:6      *ABS*:00000000 __tmp_reg__
+     /tmp/ccbfaKBa.s:7      *ABS*:00000001 __zero_reg__
+     /tmp/ccbfaKBa.s:114    .text.__vector_23:00000000 __vector_23
+     /tmp/ccbfaKBa.s:614    .bss.timer0_millis:00000000 timer0_millis
+     /tmp/ccbfaKBa.s:619    .bss.timer0_fract:00000000 timer0_fract
+     /tmp/ccbfaKBa.s:608    .bss.timer0_overflow_count:00000000 timer0_overflow_count
+     /tmp/ccbfaKBa.s:211    .text.millis:00000000 millis
+     /tmp/ccbfaKBa.s:255    .text.micros:00000000 micros
+     /tmp/ccbfaKBa.s:332    .text.delay:00000000 delay
+     /tmp/ccbfaKBa.s:399    .text.delayMicroseconds:00000000 delayMicroseconds
+     /tmp/ccbfaKBa.s:437    .text.init:00000000 init
+
+UNDEFINED SYMBOLS
+__do_copy_data
+__do_clear_bss
+__epilogue_restores__

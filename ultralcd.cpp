@@ -624,8 +624,8 @@ void lcd_sdcard_menu()
         }
     }
     END_MENU();
-//    SERIAL_PROTOCOLLNPGM("inside lcd menu for filename");
-//    SERIAL_ECHOLN(card.longFilename);
+//   SERIAL_PROTOCOLLNPGM("inside lcd menu for filename");
+//   SERIAL_ECHOLN(card.longFilename);
 }
 
 #define menu_edit_type(_type, _name, _strFunc, scale) \
@@ -735,8 +735,13 @@ static void menu_action_sdfile(const char* filename, char* longFilename)
     for(c = &cmd[4]; *c; c++)
         *c = tolower(*c);
     enquecommand(cmd);
+    SERIAL_PROTOCOLLNPGM("just enqueued M23");
+
     enquecommand_P(PSTR("M24"));    
-    lcd_return_to_status();
+     SERIAL_PROTOCOLLNPGM("just enqueued M24");
+   lcd_return_to_status();
+       SERIAL_PROTOCOLLNPGM("exiting menu_action_sdfile");
+
 }
 static void menu_action_sddirectory(const char* filename, char* longFilename)
 {

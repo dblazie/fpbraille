@@ -334,7 +334,6 @@ void suicide()
 void setup()
 {
   length=0;
-  braille_in_process=0;
   setup_killpin(); 
   setup_powerhold();
   MYSERIAL.begin(BAUDRATE);
@@ -391,17 +390,6 @@ void setup()
   #ifdef EXTRUDERFAN_PIN
     SET_OUTPUT(EXTRUDERFAN_PIN); //Set pin used for extruder cooling fan
   #endif
-//  do auto home here in setup:   
-  enquecommand_P(PSTR("G28"));
-
-//    st_synchronize();
-  enable_endstops(false);  // now that we are at HOME, we can disable endstop checking so we can move
-  enquecommand_P(PSTR("G91"));  //set mode to relative
-//  enquecommand_P(PSTR("G1X44.Y-290."));
-  enquecommand_P(PSTR("M114"));
-//  enquecommand_P(PSTR("G1X200Y200 "));
-//  enquecommand_P(PSTR("M114"));
-  
 }
 
 
@@ -590,9 +578,6 @@ void get_command()
         lcd_setstatus(time);
         card.printingHasFinished();
         card.checkautostart(true);
-//        st_synchronize();
-//        enquecommand_P(PSTR("G28"));    // Home Carriage
-
         
       }
       if(!serial_count)
@@ -705,15 +690,11 @@ void process_commands()
  //       SERIAL_PROTOCOLLNPGM("inside process commands");
     if (braille_in_process) 
     {
-        SERIAL_PROTOCOLLN("process in Braille");
-        SERIAL_ECHO(cmdbuffer[bufindr]);
+//        SERIAL_PROTOCOLLN("process in Braille");
+//        SERIAL_ECHO(cmdbuffer[bufindr]);PROTOCOLLN
          strcpy((char *)ascii_txt, cmdbuffer[bufindr]);
          convert_to_braille((unsigned char *)ascii_txt, (unsigned int)strlen(ascii_txt));
          convert_to_dots((unsigned char *)ascii_txt, (unsigned int)strlen(ascii_txt));
-//    st_synchronize();
-//       plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS]+50, current_position[Z_AXIS], current_position[E_AXIS], 600, active_extruder);
-//    st_synchronize();
-         
          SERIAL_PROTOCOLLN(braille_dots14);
          SERIAL_PROTOCOLLN(braille_dots25);
          SERIAL_PROTOCOLLN(braille_dots36);
@@ -798,18 +779,17 @@ void process_commands()
       
       enable_endstops(true);
       
-      for(int8_t i=0; i < 2; i++) {    // changed by deane 2 instead of NUM_AXIS
+      for(int8_t i=0; i < NUM_AXIS; i++) {
         destination[i] = current_position[i];
       }
       feedrate = 0.0;
       home_all_axis = !((code_seen(axis_codes[0])) || (code_seen(axis_codes[1])) || (code_seen(axis_codes[2])));
       
-      // note from deane.  Don't try to home the Zaxis it will timeout in 90 seconds.   
-//      #if Z_HOME_DIR > 0                      // If homing away from BED do Z first
-//      if((home_all_axis) || (code_seen(axis_codes[Z_AXIS]))) {
-//        HOMEAXIS(Z);
-//      }
-//      #endif
+      #if Z_HOME_DIR > 0                      // If homing away from BED do Z first
+      if((home_all_axis) || (code_seen(axis_codes[Z_AXIS]))) {
+        HOMEAXIS(Z);
+      }
+      #endif
       
       #ifdef QUICK_HOME
       if((home_all_axis)||( code_seen(axis_codes[X_AXIS]) && code_seen(axis_codes[Y_AXIS])) )  //first diagonal move
@@ -845,11 +825,11 @@ void process_commands()
         HOMEAXIS(Y);
       }
       
-//      #if Z_HOME_DIR < 0                      // If homing towards BED do Z last
-//      if((home_all_axis) || (code_seen(axis_codes[Z_AXIS]))) {
-//        HOMEAXIS(Z);
-//     }
-//      #endif
+      #if Z_HOME_DIR < 0                      // If homing towards BED do Z last
+      if((home_all_axis) || (code_seen(axis_codes[Z_AXIS]))) {
+        HOMEAXIS(Z);
+      }
+      #endif
       
       if(code_seen(axis_codes[X_AXIS])) 
       {
@@ -864,11 +844,11 @@ void process_commands()
         }
       }
 
-//      if(code_seen(axis_codes[Z_AXIS])) {
-//        if(code_value_long() != 0) {
-//          current_position[Z_AXIS]=code_value()+add_homeing[2];
-//        }
-//      }
+      if(code_seen(axis_codes[Z_AXIS])) {
+        if(code_value_long() != 0) {
+          current_position[Z_AXIS]=code_value()+add_homeing[2];
+        }
+      }
       plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
       
       #ifdef ENDSTOPS_ONLY_FOR_HOMING
@@ -964,15 +944,12 @@ void process_commands()
 
       break;
     case 23: //M23 - Select file
-        SERIAL_PROTOCOLLNPGM("executing M23");
       starpos = (strchr(strchr_pointer + 4,'*'));
       if(starpos!=NULL)
         *(starpos-1)='\0';
       card.openFile(strchr_pointer + 4,true);
       break;
     case 24: //M24 - Start SD print
-        SERIAL_PROTOCOLLNPGM("executing M24");
-
       card.startFileprint();
       starttime=millis();
       braille_in_process = 1;
@@ -2245,23 +2222,4 @@ bool setTargetedHotend(int code){
     }
   }
   return false;
-}
-
-void emboss_row()
-{
-         st_synchronize();
-         plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS]+10., current_position[Z_AXIS], current_position[E_AXIS], 600, active_extruder);
-         current_position[Y_AXIS] +=10.;
-         st_synchronize();
-         plan_buffer_line(current_position[X_AXIS]+40., current_position[Y_AXIS], current_position[Z_AXIS], 0, 600, active_extruder);         
-         current_position[X_AXIS] +=40.;
-         st_synchronize();
-}
-
-void next_line()
-{
-         st_synchronize();
-         plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS]+12., 0, current_position[E_AXIS], 600, active_extruder);
-         current_position[Y_AXIS] +=12.;
-         st_synchronize();
 }

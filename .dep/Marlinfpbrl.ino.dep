@@ -1,0 +1,54 @@
+Marlinfpbrl.o: Marlinfpbrl.ino \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Arduino.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/binary.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WCharacter.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/HardwareSerial.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Stream.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Print.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Printable.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/new.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/variants/mega/pins_arduino.h \
+  Configuration.h Configuration_adv.h thermistortables.h Marlin.h \
+  fastio.h pins.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Arduino.h \
+  MarlinSerial.h \
+  /home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Arduino.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/binary.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WCharacter.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/HardwareSerial.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Stream.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Print.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Printable.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/new.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/variants/mega/pins_arduino.h:
+
+Configuration.h:
+
+Configuration_adv.h:
+
+thermistortables.h:
+
+Marlin.h:
+
+fastio.h:
+
+pins.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/Arduino.h:
+
+MarlinSerial.h:
+
+/home/deane/reprap/arduino-1.5.2/hardware/arduino/cores/arduino/WString.h:

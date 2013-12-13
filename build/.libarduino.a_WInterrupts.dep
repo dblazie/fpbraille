@@ -1,0 +1,25 @@
+build/libarduino.a(WInterrupts.o):  \
+ ../arduino-1.0.5/hardware/arduino/cores/arduino/WInterrupts.c \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/inttypes.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/stdint.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/avr/io.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/avr/sfr_defs.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/avr/iom2560.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/avr/iomxx0_1.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/avr/portpins.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/avr/common.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/avr/version.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/avr/fuse.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/avr/lock.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/avr/interrupt.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/avr/pgmspace.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/include/stddef.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/stdio.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/include/stdarg.h \
+  ../arduino-1.0.5/hardware/arduino/cores/arduino/wiring_private.h \
+  ../arduino-1.0.5/hardware/arduino/cores/arduino/Arduino.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/stdlib.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/string.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/tools/avr/bin/../lib/gcc/avr/4.3.2/../../../avr/include/math.h \
+  ../arduino-1.0.5/hardware/arduino/cores/arduino/binary.h \
+  /home/deane/reprap/arduino-1.0.5/hardware/arduino/variants/mega/pins_arduino.h

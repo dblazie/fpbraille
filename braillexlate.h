@@ -6,8 +6,9 @@
  rows.
 
 */
-#define DATA_PORT_NUMBER 13    // LED on RAMPS board.  Suggest we use aux-1 aout D1 & D2 port 
-#define CLOCK_PORT_NUMBER 33   // Buzzer on RAMPS board. Suggest we use aux-1 aout D1 & D2 port 
+#define  CLOCK_SPEED  2   // delay in milliseconds  
+#define DATA_PORT_NUMBER 11   // LED on RAMPS board.  Suggest we use Servo port 1, D11
+#define CLOCK_PORT_NUMBER 4  // Buzzer on RAMPS board. Suggest we use Servo ports 4, D4
 #define PRINTER_BUSY   // We will use an input to check when the printer is busy or ready for clocking data in.
                        // Suggest we use one of the END_STOP pins
                        
@@ -19,7 +20,8 @@
         int braille_in_process;  // flag for printing a file in Braille
         int length;      // lengh of string we are putting into ascii_txt
         void send_dots(unsigned char *buffer, unsigned int buffer_len);
-        
+        void emboss_row(void);
+        void next_line(void);        
 unsigned int braille_alphabet[] = {
 0b00000000 /*00*/, 0b00000000 /*01*/, 0b00000000 /*02*/, 0b00000000 /*03*/,
 0b00000000 /*04*/, 0b00000000 /*05*/, 0b00000000 /*06*/, 0b00000000 /*07*/,
@@ -78,25 +80,25 @@ unsigned int braille_alphabet[] = {
      digitalWrite(CLOCK_PORT_NUMBER, 1);
  }
 void
-convert_to_braille(unsigned char *buffer, unsigned int buffer_len)
+convert_to_braille(unsigned char *bbuffer, unsigned int buffer_len)
 {
 	int i = 0;
 
 	for (i = 0; i < buffer_len; i++) {
-		if( 0x20 == buffer[i] ) /* Space character*/
+		if( 0x20 == bbuffer[i] ) /* Space character*/
 		{
-			buffer[i] = 0x80;    // this is cheating so that 0x0 does not terminate the string
+			bbuffer[i] = 0x80;    // this is cheating so that 0x0 does not terminate the string
 		}
 		else
 		{
-			buffer[i] = braille_alphabet[buffer[i]];     
+			bbuffer[i] = braille_alphabet[bbuffer[i]];     
 		}
 	}
 
 	return;
 }
 
-void convert_to_dots(unsigned char *buffer, unsigned int buffer_len)
+void convert_to_dots(unsigned char *dbuffer, unsigned int buffer_len)
 {
 	int i = 0;
         int j = 0;
@@ -104,7 +106,7 @@ void convert_to_dots(unsigned char *buffer, unsigned int buffer_len)
         int number_of_dots = 80;
         j = 0;
         	for (i = 0; i < buffer_len; i++) {
-                    bchar = buffer[i];
+                    bchar = dbuffer[i];
                     if (bchar & 0b00000001) braille_dots14[j] = '1'; else braille_dots14[j] = '0'; // dot 1
                     if (bchar & 0b00001000) braille_dots14[j+1] = '1'; else braille_dots14[j+1] = '0'; // dot 4
                     if (bchar & 0b00000010) braille_dots25[j] = '1'; else braille_dots25[j] = '0'; // dot 2
@@ -115,26 +117,30 @@ void convert_to_dots(unsigned char *buffer, unsigned int buffer_len)
            	}         
          braille_dots14[j] = 0;        // terminate strings with 0  
          send_dots((unsigned char *)braille_dots14, number_of_dots);
+         emboss_row();
          braille_dots25[j] = 0;        // terminate strings with 0  
          send_dots((unsigned char *)braille_dots25, number_of_dots);
+         emboss_row();
          braille_dots36[j] = 0;        // terminate strings with 0  
          send_dots((unsigned char *)braille_dots36, number_of_dots);
+         emboss_row();
+         next_line();
 	return;
 }
 
 void send_dots(unsigned char *buffer, unsigned int buffer_len)
 {
- int i,j,clock_speed;
+ int i,j;
  i = j = 0;
- clock_speed = 2;   // delay in milliseconds  this must be shorter
- for (i = 0; i<buffer_len; i++)    // buffer_len should be either 80 (text) or 120 (graphics)
+ for (i = 0; i<buffer_len; i++)    // buffer_len should be 80 (text) and (graphics)
   {
       if (buffer[i] == '0') set_data_low(); else set_data_high();
-      delay(clock_speed);
+      delay(CLOCK_SPEED);
       set_clock_low();
-      delay(clock_speed);
+      delay(CLOCK_SPEED);
       set_clock_high();
-      delay(clock_speed);
+      delay(CLOCK_SPEED);
   }
  }
  
+
